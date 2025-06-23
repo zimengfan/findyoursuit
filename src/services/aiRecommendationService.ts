@@ -18,7 +18,10 @@ export interface OutfitRecommendationWithImages {
 const QWEN_API_URL = 'https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation';
 
 export async function getAIRecommendationWithImages(preferences: any): Promise<any> {
-  const response = await fetch('http://localhost:5174/api/recommend', {
+  const API_BASE_URL = import.meta.env.PROD
+    ? 'https://findyoursuit.onrender.com'
+    : 'http://localhost:5174';
+  const response = await fetch(`${API_BASE_URL}/api/recommend`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(preferences),
