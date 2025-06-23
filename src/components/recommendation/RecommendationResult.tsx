@@ -1,11 +1,11 @@
-
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { OutfitRecommendation } from '@/services/recommendationService';
-import { Share, Save, Sparkles, Shirt, ArrowLeft } from 'lucide-react';
+import { Share, Save, Sparkles, Shirt, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
+import useEmblaCarousel from 'embla-carousel-react';
 
 interface RecommendationResultProps {
   recommendation: OutfitRecommendation;
@@ -20,6 +20,23 @@ const RecommendationResult: React.FC<RecommendationResultProps> = ({
   
   // Mock image URL - in a real app, this would come from an image generation API
   const mockImageUrl = "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=400&h=600&fit=crop";
+
+  // Embla carousel setup
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const images = recommendation.images && recommendation.images.length > 0 ? recommendation.images : [];
+
+  const scrollPrev = useCallback(() => emblaApi && emblaApi.scrollPrev(), [emblaApi]);
+  const scrollNext = useCallback(() => emblaApi && emblaApi.scrollNext(), [emblaApi]);
+  const onSelect = useCallback(() => {
+    if (!emblaApi) return;
+    setSelectedIndex(emblaApi.selectedScrollSnap());
+  }, [emblaApi]);
+  React.useEffect(() => {
+    if (!emblaApi) return;
+    emblaApi.on('select', onSelect);
+    onSelect();
+  }, [emblaApi, onSelect]);
 
   const handleShare = () => {
     if (navigator.share) {
@@ -82,7 +99,39 @@ const RecommendationResult: React.FC<RecommendationResultProps> = ({
               </h2>
               
               <div className="relative bg-gradient-to-b from-slate-100 to-slate-200 rounded-lg p-8 mb-4 min-h-[400px] flex items-center justify-center">
-                {!imageError ? (
+                {images.length > 0 ? (
+                  <div className="w-full">
+                    <div className="overflow-hidden" ref={emblaRef}>
+                      <div className="flex">
+                        {images.map((url: string, idx: number) => (
+                          <img
+                            key={idx}
+                            src={url}
+                            alt={`Outfit reference ${idx + 1}`}
+                            className="rounded-lg shadow-lg mx-2"
+                            style={{ width: 240, height: 'auto', flex: '0 0 240px', objectFit: 'cover' }}
+                            onError={() => setImageError(true)}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    {images.length > 1 && (
+                      <div className="flex items-center justify-center mt-4 gap-4">
+                        <Button onClick={scrollPrev} size="icon" variant="outline"><ChevronLeft /></Button>
+                        {images.map((_, idx) => (
+                          <button
+                            key={idx}
+                            className={`w-3 h-3 rounded-full mx-1 ${selectedIndex === idx ? 'bg-blue-600' : 'bg-slate-300'}`}
+                            style={{ border: 'none' }}
+                            onClick={() => emblaApi && emblaApi.scrollTo(idx)}
+                            aria-label={`Go to slide ${idx + 1}`}
+                          />
+                        ))}
+                        <Button onClick={scrollNext} size="icon" variant="outline"><ChevronRight /></Button>
+                      </div>
+                    )}
+                  </div>
+                ) : !imageError ? (
                   <img
                     src={mockImageUrl}
                     alt="Suit recommendation preview"

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { UserPreferences } from '@/pages/Index';
 import { Card } from '@/components/ui/card';
@@ -35,13 +34,6 @@ const PreferencesStep: React.FC<PreferencesStepProps> = ({ preferences, updatePr
     { id: 'business-casual', label: 'Business Casual', description: 'Relaxed professional look' }
   ];
 
-  const budgetRanges = [
-    { id: 'budget', label: 'Budget-Friendly ($200-500)' },
-    { id: 'mid-range', label: 'Mid-Range ($500-1200)' },
-    { id: 'premium', label: 'Premium ($1200-2500)' },
-    { id: 'luxury', label: 'Luxury ($2500+)' }
-  ];
-
   const SelectionGrid: React.FC<{
     title: string;
     options: any[];
@@ -64,32 +56,30 @@ const PreferencesStep: React.FC<PreferencesStepProps> = ({ preferences, updatePr
             }`}
             onClick={() => onSelect(option.id)}
           >
-            <div className="flex items-center justify-between">
-              <div className="flex items-start space-x-3">
-                {option.icon && (
-                  <Sparkles className={`h-5 w-5 mt-0.5 ${
-                    selectedValue === option.id ? 'text-purple-600' : 'text-purple-500'
-                  }`} />
-                )}
-                <div className="flex-1">
-                  <p className={`font-medium ${
-                    option.id === 'ai-pick' 
-                      ? 'text-purple-700'
-                      : option.colors || 'text-slate-800'
-                  }`}>
-                    {option.label}
-                  </p>
-                  {option.description && (
-                    <p className="text-sm text-slate-600 mt-1">{option.description}</p>
-                  )}
-                </div>
-              </div>
-              {selectedValue === option.id && (
-                <Badge className={option.id === 'ai-pick' ? 'bg-purple-500' : 'bg-blue-500'}>
-                  ✓
-                </Badge>
+            <div className="flex items-start space-x-3">
+              {option.icon && (
+                <Sparkles className={`h-5 w-5 mt-0.5 ${
+                  selectedValue === option.id ? 'text-purple-600' : 'text-purple-500'
+                }`} />
               )}
+              <div className="flex-1">
+                <p className={`font-medium ${
+                  option.id === 'ai-pick' 
+                    ? 'text-purple-700'
+                    : option.colors || 'text-slate-800'
+                }`}>
+                  {option.label}
+                </p>
+                {option.description && (
+                  <p className="text-sm text-slate-600 mt-1">{option.description}</p>
+                )}
+              </div>
             </div>
+            {selectedValue === option.id && (
+              <Badge className={option.id === 'ai-pick' ? 'bg-purple-500' : 'bg-blue-500'}>
+                ✓
+              </Badge>
+            )}
           </Card>
         ))}
       </div>
@@ -129,14 +119,6 @@ const PreferencesStep: React.FC<PreferencesStepProps> = ({ preferences, updatePr
         selectedValue={preferences.formalityLevel}
         onSelect={(value) => updatePreferences({ formalityLevel: value })}
         keyName="formalityLevel"
-      />
-
-      <SelectionGrid
-        title="Budget Range"
-        options={budgetRanges}
-        selectedValue={preferences.budget}
-        onSelect={(value) => updatePreferences({ budget: value })}
-        keyName="budget"
       />
     </div>
   );

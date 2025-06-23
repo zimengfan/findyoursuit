@@ -1,4 +1,3 @@
-
 import { UserPreferences } from '@/pages/Index';
 
 export interface OutfitRecommendation {
@@ -27,6 +26,7 @@ export interface OutfitRecommendation {
   imageQuery: string;
   seasonalNotes: string;
   styleNotes: string[];
+  images?: string[];
 }
 
 export const generateRecommendation = async (preferences: UserPreferences): Promise<OutfitRecommendation> => {
@@ -216,11 +216,17 @@ const getAccessories = (prefs: UserPreferences): string[] => {
     accessories.push('Boutonniere');
   }
 
-  if (prefs.budget === 'luxury' || prefs.budget === 'premium') {
-    accessories.push('Watch', 'Cufflinks');
+  // Add cufflinks for formal occasions
+  if (prefs.formalityLevel === 'formal' || prefs.formalityLevel === 'black-tie') {
+    accessories.push('Cufflinks');
   }
 
-  return accessories;
+  // Add watch for all occasions except casual
+  if (prefs.formalityLevel !== 'business-casual') {
+    accessories.push('Watch');
+  }
+
+  return [...new Set(accessories)]; // Remove duplicates
 };
 
 const generateJustification = (prefs: UserPreferences, suit: any, shirt: any, tie: any): string => {
@@ -320,11 +326,11 @@ const getStyleNotes = (prefs: UserPreferences, suit: any): string[] => {
   const notes = [];
   
   notes.push(`${suit.fit} cut enhances your ${prefs.bodyType} build`);
-  notes.push(`${suit.color} works beautifully with ${prefs.skinTone} skin tones`);
+  notes.push(`${suit.color} works beautifully with your ${prefs.skinTone} skin tone`);
   notes.push(`Perfect formality level for ${prefs.occasion} events`);
   
-  if (prefs.budget === 'luxury') {
-    notes.push('Premium fabrics and construction for lasting quality');
+  if (prefs.formalityLevel === 'black-tie' || prefs.formalityLevel === 'formal') {
+    notes.push('Consider having the suit professionally tailored for a perfect fit');
   }
   
   return notes;

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,7 @@ import OccasionStep from '@/components/recommendation/OccasionStep';
 import PreferencesStep from '@/components/recommendation/PreferencesStep';
 import PersonalInfoStep from '@/components/recommendation/PersonalInfoStep';
 import RecommendationResult from '@/components/recommendation/RecommendationResult';
-import { generateRecommendation } from '@/services/recommendationService';
+import { getAIRecommendationWithImages } from '@/services/aiRecommendationService';
 import { Sparkles, Shirt } from 'lucide-react';
 
 export interface UserPreferences {
@@ -15,7 +14,6 @@ export interface UserPreferences {
   season: string;
   colorPreference: string;
   formalityLevel: string;
-  budget: string;
   bodyType: string;
   skinTone: string;
   age: string;
@@ -28,7 +26,6 @@ const Index = () => {
     season: '',
     colorPreference: '',
     formalityLevel: '',
-    budget: '',
     bodyType: '',
     skinTone: '',
     age: ''
@@ -56,7 +53,7 @@ const Index = () => {
   const handleGenerateRecommendation = async () => {
     setIsGenerating(true);
     try {
-      const result = await generateRecommendation(preferences);
+      const result = await getAIRecommendationWithImages(preferences);
       setRecommendation(result);
       setCurrentStep(4); // Move to results
     } catch (error) {
@@ -76,7 +73,7 @@ const Index = () => {
         return preferences.occasion !== '';
       case 2:
         return preferences.season !== '' && preferences.colorPreference !== '' && 
-               preferences.formalityLevel !== '' && preferences.budget !== '';
+               preferences.formalityLevel !== '';
       case 3:
         return preferences.bodyType !== '' && preferences.skinTone !== '';
       default:
@@ -91,7 +88,6 @@ const Index = () => {
       season: '',
       colorPreference: '',
       formalityLevel: '',
-      budget: '',
       bodyType: '',
       skinTone: '',
       age: ''
