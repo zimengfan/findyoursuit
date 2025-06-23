@@ -16,10 +16,10 @@ app.use((req, res, next) => {
     "Content-Security-Policy",
     [
       "default-src 'self'",
-      "img-src 'self' data: https://dashscope-result-sh.oss-cn-shanghai.aliyuncs.com",
+      "img-src 'self' data: https://dashscope-result-sh.oss-cn-shanghai.aliyuncs.com https://images.unsplash.com",
       "script-src 'self'",
       "style-src 'self' 'unsafe-inline'",
-      "connect-src 'self' http://localhost:5174 https://dashscope-result-sh.oss-cn-shanghai.aliyuncs.com"
+      "connect-src 'self' https://findyoursuit.onrender.com https://dashscope-result-sh.oss-cn-shanghai.aliyuncs.com"
     ].join('; ')
   );
   next();
