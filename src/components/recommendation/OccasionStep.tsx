@@ -1,8 +1,10 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { UserPreferences } from '@/pages/Index';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface OccasionStepProps {
   preferences: UserPreferences;
@@ -21,6 +23,20 @@ const occasions = [
 ];
 
 const OccasionStep: React.FC<OccasionStepProps> = ({ preferences, updatePreferences }) => {
+  const [customOccasion, setCustomOccasion] = useState('');
+
+  const handleOccasionSelect = (occasionId: string) => {
+    updatePreferences({ occasion: occasionId });
+    if (occasionId !== 'custom') {
+      setCustomOccasion('');
+    }
+  };
+
+  const handleCustomOccasionChange = (value: string) => {
+    setCustomOccasion(value);
+    updatePreferences({ occasion: `custom:${value}` });
+  };
+
   return (
     <div>
       <div className="text-center mb-8">
@@ -33,7 +49,7 @@ const OccasionStep: React.FC<OccasionStepProps> = ({ preferences, updatePreferen
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         {occasions.map((occasion) => (
           <Card
             key={occasion.id}
@@ -42,7 +58,7 @@ const OccasionStep: React.FC<OccasionStepProps> = ({ preferences, updatePreferen
                 ? 'border-blue-500 bg-blue-50 shadow-md'
                 : 'border-slate-200 hover:border-blue-300'
             }`}
-            onClick={() => updatePreferences({ occasion: occasion.id })}
+            onClick={() => handleOccasionSelect(occasion.id)}
           >
             <div className="flex items-start justify-between">
               <div className="flex-1">
@@ -63,12 +79,60 @@ const OccasionStep: React.FC<OccasionStepProps> = ({ preferences, updatePreferen
         ))}
       </div>
 
+      {/* Custom Occasion Section */}
+      <div className="mb-6">
+        <Card
+          className={`p-6 cursor-pointer transition-all duration-300 border-2 hover:shadow-lg ${
+            preferences.occasion?.startsWith('custom:')
+              ? 'border-blue-500 bg-blue-50 shadow-md'
+              : 'border-slate-200 hover:border-blue-300'
+          }`}
+          onClick={() => handleOccasionSelect('custom')}
+        >
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex-1">
+              <h3 className="font-semibold text-slate-800 text-lg mb-2">
+                Custom Occasion
+              </h3>
+              <p className="text-slate-600 text-sm">
+                Describe your specific event or occasion
+              </p>
+            </div>
+            {preferences.occasion?.startsWith('custom:') && (
+              <Badge className="ml-2 bg-blue-500">
+                Selected
+              </Badge>
+            )}
+          </div>
+          
+          {(preferences.occasion?.startsWith('custom:') || preferences.occasion === 'custom') && (
+            <div className="space-y-2">
+              <Label htmlFor="custom-occasion" className="text-sm font-medium text-slate-700">
+                Describe your occasion
+              </Label>
+              <Input
+                id="custom-occasion"
+                type="text"
+                placeholder="e.g., Company holiday party, First date, Art gallery opening..."
+                value={customOccasion}
+                onChange={(e) => handleCustomOccasionChange(e.target.value)}
+                className="w-full"
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
+          )}
+        </Card>
+      </div>
+
       {preferences.occasion && (
         <div className="mt-8 p-6 bg-blue-50 rounded-lg border border-blue-200">
           <p className="text-blue-800 font-medium">
             Great choice! We'll tailor our recommendations for your{' '}
             <span className="font-bold">
-              {occasions.find(o => o.id === preferences.occasion)?.label}
+              {preferences.occasion.startsWith('custom:') 
+                ? preferences.occasion.replace('custom:', '')
+                : occasions.find(o => o.id === preferences.occasion)?.label
+              }
             </span>
             .
           </p>

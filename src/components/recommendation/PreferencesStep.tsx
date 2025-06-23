@@ -3,6 +3,7 @@ import React from 'react';
 import { UserPreferences } from '@/pages/Index';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Sparkles } from 'lucide-react';
 
 interface PreferencesStepProps {
   preferences: UserPreferences;
@@ -18,6 +19,7 @@ const PreferencesStep: React.FC<PreferencesStepProps> = ({ preferences, updatePr
   ];
 
   const colorPreferences = [
+    { id: 'ai-pick', label: 'Let AI Pick for You', icon: true, description: 'Our AI will choose the perfect colors based on your occasion and preferences' },
     { id: 'classic', label: 'Classic (Navy, Charcoal, Black)' },
     { id: 'earth', label: 'Earth Tones (Brown, Tan, Olive)' },
     { id: 'bold', label: 'Bold Colors (Burgundy, Forest Green)' },
@@ -26,6 +28,7 @@ const PreferencesStep: React.FC<PreferencesStepProps> = ({ preferences, updatePr
   ];
 
   const formalityLevels = [
+    { id: 'ai-pick', label: 'Let AI Pick for You', icon: true, description: 'Our AI will determine the perfect formality level for your occasion' },
     { id: 'black-tie', label: 'Black Tie', description: 'Most formal, tuxedo required' },
     { id: 'formal', label: 'Formal', description: 'Dark suit, conservative styling' },
     { id: 'semi-formal', label: 'Semi-Formal', description: 'Business attire, some flexibility' },
@@ -54,22 +57,37 @@ const PreferencesStep: React.FC<PreferencesStepProps> = ({ preferences, updatePr
             key={option.id}
             className={`p-4 cursor-pointer transition-all duration-200 border hover:shadow-md ${
               selectedValue === option.id
-                ? 'border-blue-500 bg-blue-50'
+                ? option.id === 'ai-pick' 
+                  ? 'border-purple-500 bg-gradient-to-r from-purple-50 to-blue-50'
+                  : 'border-blue-500 bg-blue-50'
                 : 'border-slate-200 hover:border-blue-300'
             }`}
             onClick={() => onSelect(option.id)}
           >
             <div className="flex items-center justify-between">
-              <div>
-                <p className={`font-medium ${option.colors || 'text-slate-800'}`}>
-                  {option.label}
-                </p>
-                {option.description && (
-                  <p className="text-sm text-slate-600 mt-1">{option.description}</p>
+              <div className="flex items-start space-x-3">
+                {option.icon && (
+                  <Sparkles className={`h-5 w-5 mt-0.5 ${
+                    selectedValue === option.id ? 'text-purple-600' : 'text-purple-500'
+                  }`} />
                 )}
+                <div className="flex-1">
+                  <p className={`font-medium ${
+                    option.id === 'ai-pick' 
+                      ? 'text-purple-700'
+                      : option.colors || 'text-slate-800'
+                  }`}>
+                    {option.label}
+                  </p>
+                  {option.description && (
+                    <p className="text-sm text-slate-600 mt-1">{option.description}</p>
+                  )}
+                </div>
               </div>
               {selectedValue === option.id && (
-                <Badge className="bg-blue-500">✓</Badge>
+                <Badge className={option.id === 'ai-pick' ? 'bg-purple-500' : 'bg-blue-500'}>
+                  ✓
+                </Badge>
               )}
             </div>
           </Card>
