@@ -14,7 +14,13 @@ const PORT = process.env.PORT || 5174;
 app.use((req, res, next) => {
   res.setHeader(
     "Content-Security-Policy",
-    "default-src 'self'; img-src 'self' data: https://dashscope-result-sh.oss-cn-shanghai.aliyuncs.com; script-src 'self'; style-src 'self' 'unsafe-inline';"
+    [
+      "default-src 'self'",
+      "img-src 'self' data: https://dashscope-result-sh.oss-cn-shanghai.aliyuncs.com",
+      "script-src 'self'",
+      "style-src 'self' 'unsafe-inline'",
+      "connect-src 'self' http://localhost:5174 https://dashscope-result-sh.oss-cn-shanghai.aliyuncs.com"
+    ].join('; ')
   );
   next();
 });
