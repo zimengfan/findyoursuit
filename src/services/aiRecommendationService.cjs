@@ -3,30 +3,9 @@ require('dotenv').config();
 const { validateOutfitRecommendation } = require('../lib/validateRecommendation.cjs');
 const { spawn } = require('child_process');
 
-async function generateOutfitImage(recommendation, preferences) {
-  return new Promise((resolve, reject) => {
+function runImageGeneration(prompt) {
+  return new Promise((resolve) => {
     try {
-      const skinToneDescription = getSkinToneDescription(preferences.skinTone);
-      // Determine background based on occasion
-      const occasionBackgrounds = {
-        'wedding': 'elegant wedding venue background',
-        'interview': 'modern office background',
-        'business': 'corporate boardroom background',
-        'date': 'romantic restaurant background',
-        'gala': 'luxurious gala event background',
-        'graduation': 'university ceremony background',
-        'funeral': 'respectful, muted background',
-        'cocktail': 'stylish cocktail party background',
-        'default': 'studio background that matches the occasion'
-      };
-      let occasionKey = preferences.occasion;
-      if (occasionKey && occasionKey.startsWith('custom:')) {
-        occasionKey = 'default';
-      }
-      const background = occasionBackgrounds[occasionKey] || occasionBackgrounds['default'];
-      const prompt = `Full body photo of the same ${skinToneDescription} man from three different angles (front, 3/4 view, and side view), wearing ${recommendation.suit.color} ${recommendation.suit.fit} suit, ${recommendation.shirt.color} shirt, ${recommendation.neckwear.color} ${recommendation.neckwear.type}, ${recommendation.shoes.color} shoes. Ensure the person's facial features, hair, and build remain exactly the same in all three views. Professional photography, ${background}. Maintain consistent lighting and composition across all views.`;
-
-      // Spawn Python process
       const pythonProcess = spawn('python', ['src/services/imageGeneration.py', prompt]);
       
       let result = '';
@@ -45,26 +24,65 @@ async function generateOutfitImage(recommendation, preferences) {
       pythonProcess.on('close', (code) => {
         if (code !== 0) {
           console.error('Python process error:', error);
-          resolve([]);
+          resolve(null);
         } else {
-          // Parse multiple URLs from the output
-          const urls = [];
           const lines = result.split('\n');
           for (const line of lines) {
             const match = line.match(/\d+\. (https?:\/\/[^\s]+)/);
             if (match && match[1]) {
-              urls.push(match[1].trim());
+              resolve(match[1].trim());
+              return;
             }
           }
-          resolve(urls);
+          resolve(null);
         }
       });
 
     } catch (err) {
-      console.error('Error in image generation:', err);
-      resolve([]);
+      console.error('Error in image generation child process:', err);
+      resolve(null);
     }
   });
+}
+
+async function generateOutfitImage(recommendation, preferences) {
+  try {
+    const skinToneDescription = getSkinToneDescription(preferences.skinTone);
+    const occasionBackgrounds = {
+      'wedding': 'elegant wedding venue background',
+      'interview': 'modern office background',
+      'business': 'corporate boardroom background',
+      'date': 'romantic restaurant background',
+      'gala': 'luxurious gala event background',
+      'graduation': 'university ceremony background',
+      'funeral': 'respectful, muted background',
+      'cocktail': 'stylish cocktail party background',
+      'default': 'studio background that matches the occasion'
+    };
+    let occasionKey = preferences.occasion;
+    if (occasionKey && occasionKey.startsWith('custom:')) {
+      occasionKey = 'default';
+    }
+    const background = occasionBackgrounds[occasionKey] || occasionBackgrounds['default'];
+
+    const characterDetails = `a ${skinToneDescription} man with short dark hair, maintaining a consistent appearance in all images.`;
+    const outfitDetails = `wearing ${recommendation.suit.color} ${recommendation.suit.fit} suit, ${recommendation.shirt.color} shirt, ${recommendation.neckwear.color} ${recommendation.neckwear.type}, ${recommendation.shoes.color} shoes.`;
+
+    const prompts = [
+      `Full body photo, front view. A single person, ${characterDetails} ${outfitDetails} Professional photography, ${background}.`,
+      `Full body photo, 3/4 view of the same person from the front view image. ${characterDetails} ${outfitDetails} Ensure facial features, hair, and build are identical to the front view. Professional photography, ${background}.`,
+      `Full body photo, side view of the same person from the previous images. ${characterDetails} ${outfitDetails} Ensure facial features, hair, and build are identical to the previous views. Professional photography, ${background}.`
+    ];
+    
+    const imagePromises = prompts.map(prompt => runImageGeneration(prompt));
+    const imageUrls = await Promise.all(imagePromises);
+    
+    return imageUrls.filter(url => url);
+
+  } catch (err) {
+    console.error('Error in generating outfit images:', err);
+    return [];
+  }
 }
 
 function getSkinToneDescription(skinTone) {
