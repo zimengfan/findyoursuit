@@ -13,7 +13,6 @@ import { useNavigate } from 'react-router-dom';
 export interface UserPreferences {
   occasion: string;
   colorPreference: string;
-  formalityLevel: string;
   bodyType: string;
   skinTone: string;
   age: string;
@@ -21,10 +20,9 @@ export interface UserPreferences {
 
 const initialPreferences: UserPreferences = {
   occasion: '',
-  colorPreference: 'ai-pick',
-  formalityLevel: 'ai-pick',
-  bodyType: 'average',
-  skinTone: 'medium',
+  colorPreference: '',
+  bodyType: '',
+  skinTone: '',
   age: '',
 };
 
@@ -99,7 +97,7 @@ const Recommendations = () => {
       case 1:
         return preferences.occasion !== '';
       case 2:
-        return preferences.colorPreference !== '' && preferences.formalityLevel !== '';
+        return preferences.colorPreference !== '';
       case 3:
         return preferences.bodyType !== '' && preferences.skinTone !== '';
       default:

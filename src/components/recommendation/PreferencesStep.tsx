@@ -125,27 +125,6 @@ const PreferencesStep: React.FC<PreferencesStepProps> = ({ preferences, updatePr
         onSelect={(value) => updatePreferences({ colorPreference: value })}
         keyName="colorPreference"
       />
-
-      <div>
-        <label htmlFor="formality-level" className="block text-sm font-medium text-gray-700 mb-2">
-          Formality Level
-        </label>
-        <Select
-          value={preferences.formalityLevel}
-          onValueChange={(value) => updatePreferences({ formalityLevel: value })}
-        >
-          <SelectTrigger id="formality-level" className="w-full">
-            <SelectValue placeholder="Select formality level..." />
-          </SelectTrigger>
-          <SelectContent>
-            {formalityLevels.map((level) => (
-              <SelectItem key={level.id} value={level.id}>
-                {level.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
     </div>
   );
 };

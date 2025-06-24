@@ -65,9 +65,9 @@ async function generateOutfitImage(recommendation, preferences) {
     }
     const background = occasionBackgrounds[occasionKey] || occasionBackgrounds['default'];
 
-    const characterDetails = `a ${skinToneDescription} man with short dark hair and a well-proportioned build. The person should have exactly the same facial features, hair style, height, and build in all three images.`;
+    const characterDetails = `a realistic, healthy, photogenic, and well-proportioned man (no extra limbs, no missing or deformed body parts, no distorted face), with short dark hair and a confident, natural pose. The person should have exactly the same facial features, hair style, height, and build in all three images.`;
     const outfitDetails = `wearing a perfectly tailored ${recommendation.suit.color} ${recommendation.suit.fit} suit, ${recommendation.shirt.color} shirt with ${recommendation.shirt.collar} collar, ${recommendation.neckwear.color} ${recommendation.neckwear.type}, and polished ${recommendation.shoes.color} ${recommendation.shoes.style} shoes.`;
-    const photographyDetails = `Professional fashion photography with consistent studio lighting, clean background, and high-end editorial style. ${background}`;
+    const photographyDetails = `Professional, editorial-quality fashion photography with consistent studio lighting, clean background, and high-end style. ${background}`;
 
     const prompts = [
       `Full body photo, direct front view (facing the camera). ${characterDetails} ${outfitDetails} Capture all details of the outfit from the front. This image must be a true front view. ${photographyDetails}`,
