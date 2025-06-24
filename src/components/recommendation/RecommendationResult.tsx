@@ -183,13 +183,13 @@ const RecommendationResult: React.FC<RecommendationResultProps> = ({
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-slate-700">Suit:</span>
                     <Badge variant="secondary" className="text-sm">
-                      {recommendation.suit.color} {recommendation.suit.style} {recommendation.suit.fit}
+                      {(recommendation.suit?.color || '') + ' ' + (recommendation.suit?.style || '') + ' ' + (recommendation.suit?.fit || '')}
                     </Badge>
                   </div>
                   
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-slate-700">Fabric:</span>
-                    <span className="text-slate-600">{recommendation.suit.fabric}</span>
+                    <span className="text-slate-600">{recommendation.suit?.fabric || ''}</span>
                   </div>
                   
                   <Separator />
@@ -197,21 +197,21 @@ const RecommendationResult: React.FC<RecommendationResultProps> = ({
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-slate-700">Shirt:</span>
                     <Badge variant="secondary" className="text-sm">
-                      {recommendation.shirt.color} {recommendation.shirt.collar}
+                      {(recommendation.shirt?.color || '') + ' ' + (recommendation.shirt?.collar || '')}
                     </Badge>
                   </div>
                   
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-slate-700">Neckwear:</span>
                     <Badge variant="secondary" className="text-sm">
-                      {recommendation.neckwear.color} {recommendation.neckwear.type}
+                      {(recommendation.neckwear?.color || '') + ' ' + (recommendation.neckwear?.type || '')}
                     </Badge>
                   </div>
                   
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-slate-700">Shoes:</span>
                     <Badge variant="secondary" className="text-sm">
-                      {recommendation.shoes.color} {recommendation.shoes.style}
+                      {(recommendation.shoes?.color || '') + ' ' + (recommendation.shoes?.style || '')}
                     </Badge>
                   </div>
                   
@@ -246,7 +246,7 @@ const RecommendationResult: React.FC<RecommendationResultProps> = ({
                   <div>
                     <span className="font-semibold text-slate-700 block mb-2">Accessories:</span>
                     <div className="flex flex-wrap gap-2">
-                      {recommendation.accessories.map((accessory, index) => (
+                      {(Array.isArray(recommendation.accessories) ? recommendation.accessories : []).map((accessory, index) => (
                         <Badge key={index} variant="outline" className="text-xs">
                           {accessory}
                         </Badge>
@@ -275,7 +275,7 @@ const RecommendationResult: React.FC<RecommendationResultProps> = ({
               <Card className="p-6 shadow-xl border-0 bg-white/80 backdrop-blur-sm">
                 <h2 className="text-2xl font-bold text-slate-800 mb-4">Style Highlights</h2>
                 <ul className="space-y-2">
-                  {recommendation.styleNotes.map((note, index) => (
+                  {(Array.isArray(recommendation.styleNotes) ? recommendation.styleNotes : []).map((note, index) => (
                     <li key={index} className="flex items-start">
                       <span className="text-blue-600 mr-2">•</span>
                       <span className="text-slate-700">{note}</span>
