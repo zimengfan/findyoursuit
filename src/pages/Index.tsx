@@ -1,175 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import OccasionStep from '@/components/recommendation/OccasionStep';
-import PreferencesStep from '@/components/recommendation/PreferencesStep';
-import PersonalInfoStep from '@/components/recommendation/PersonalInfoStep';
-import RecommendationResult from '@/components/recommendation/RecommendationResult';
-import { getAIRecommendationWithImages } from '@/services/aiRecommendationService';
-import { Sparkles, Shirt, Users, Star, ArrowRight, CheckCircle } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-
-export interface UserPreferences {
-  occasion: string;
-  season: string;
-  colorPreference: string;
-  formalityLevel: string;
-  bodyType: string;
-  skinTone: string;
-  age: string;
-}
-
-const LandingPage: React.FC<{ onStart: () => void }> = ({ onStart }) => (
-  <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-    <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 text-white py-16 w-full">
-      <div className="container mx-auto px-4 text-center">
-        <div className="flex items-center justify-center mb-6">
-          <Shirt className="h-12 w-12 mr-4 text-blue-300" />
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-300 to-indigo-300 bg-clip-text text-transparent">
-            SuitCraft AI
-          </h1>
-        </div>
-        <p className="text-xl text-blue-100 max-w-2xl mx-auto">
-          Discover your perfect suit with AI-powered recommendations. Get personalized, multi-view outfit previews tailored to your style, body type, and preferences. Try it for free—no signup required!
-        </p>
-        <button
-          onClick={onStart}
-          className="mt-10 px-10 py-4 rounded-lg text-lg font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg transition-colors duration-200"
-        >
-          Try for Free
-        </button>
-      </div>
-    </div>
-    <div className="container mx-auto px-4 py-12 text-center">
-      <h2 className="text-3xl font-bold text-slate-800 mb-4">How it works</h2>
-      <div className="flex flex-col md:flex-row justify-center gap-8">
-        <div className="bg-white/80 rounded-xl shadow-md p-6 flex-1 min-w-[220px]">
-          <h3 className="text-xl font-semibold text-blue-700 mb-2">1. Tell Us About You</h3>
-          <p className="text-slate-700">Select your occasion, style, and preferences. Our AI learns your needs.</p>
-        </div>
-        <div className="bg-white/80 rounded-xl shadow-md p-6 flex-1 min-w-[220px]">
-          <h3 className="text-xl font-semibold text-blue-700 mb-2">2. Get AI Recommendations</h3>
-          <p className="text-slate-700">Receive a full outfit breakdown and see your look from multiple angles.</p>
-        </div>
-        <div className="bg-white/80 rounded-xl shadow-md p-6 flex-1 min-w-[220px]">
-          <h3 className="text-xl font-semibold text-blue-700 mb-2">3. Save or Share</h3>
-          <p className="text-slate-700">Download your recommendation or share it with friends instantly.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-);
-
-// Custom smooth scroll function
-function smoothScrollToElement(element: HTMLElement, duration = 800) {
-  const startY = window.scrollY;
-  const endY = element.getBoundingClientRect().top + window.scrollY;
-  const distance = endY - startY;
-  let startTime: number | null = null;
-
-  function step(currentTime: number) {
-    if (!startTime) startTime = currentTime;
-    const timeElapsed = currentTime - startTime;
-    const progress = Math.min(timeElapsed / duration, 1);
-    window.scrollTo(0, startY + distance * easeInOutQuad(progress));
-    if (progress < 1) {
-      window.requestAnimationFrame(step);
-    }
-  }
-
-  function easeInOutQuad(t: number) {
-    return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-  }
-
-  window.requestAnimationFrame(step);
-}
+import { useNavigate } from 'react-router-dom';
+import { Shirt, Sparkles, Users, Star, ArrowRight, CheckCircle } from 'lucide-react';
 
 const Index = () => {
-  const [showFlow, setShowFlow] = useState(false);
-  const [currentStep, setCurrentStep] = useState(1);
-  const [preferences, setPreferences] = useState<UserPreferences>({
-    occasion: '',
-    season: '',
-    colorPreference: '',
-    formalityLevel: '',
-    bodyType: '',
-    skinTone: '',
-    age: ''
-  });
-  const [recommendation, setRecommendation] = useState<any>(null);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const mainContentRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-
-  const totalSteps = 3;
-  const progress = (currentStep / totalSteps) * 100;
-
-  const handleNext = () => {
-    if (currentStep < totalSteps) {
-      setCurrentStep(currentStep + 1);
-    } else {
-      handleGenerateRecommendation();
-    }
-  };
-
-  const handleBack = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
-
-  const handleGenerateRecommendation = async () => {
-    setIsGenerating(true);
-    try {
-      const result = await getAIRecommendationWithImages(preferences);
-      setRecommendation(result);
-      setCurrentStep(4); // Move to results
-    } catch (error) {
-      console.error('Error generating recommendation:', error);
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  const updatePreferences = (updates: Partial<UserPreferences>) => {
-    setPreferences(prev => ({ ...prev, ...updates }));
-  };
-
-  const canProceed = () => {
-    switch (currentStep) {
-      case 1:
-        return preferences.occasion !== '';
-      case 2:
-        return preferences.season !== '' && preferences.colorPreference !== '' && 
-               preferences.formalityLevel !== '';
-      case 3:
-        return preferences.bodyType !== '' && preferences.skinTone !== '';
-      default:
-        return false;
-    }
-  };
-
-  const resetForm = () => {
-    setCurrentStep(1);
-    setPreferences({
-      occasion: '',
-      season: '',
-      colorPreference: '',
-      formalityLevel: '',
-      bodyType: '',
-      skinTone: '',
-      age: ''
-    });
-    setRecommendation(null);
-  };
-
-  useEffect(() => {
-    if (showFlow && mainContentRef.current) {
-      smoothScrollToElement(mainContentRef.current, 800);
-    }
-  }, [showFlow, currentStep]);
 
   const features = [
     {
@@ -218,13 +55,9 @@ const Index = () => {
     "Discover new combinations you'd never considered"
   ];
 
-  if (!showFlow) {
-    return <LandingPage onStart={() => setShowFlow(true)} />;
-  }
-
-  if (currentStep === 4 && recommendation) {
-    return <RecommendationResult recommendation={recommendation} onReset={resetForm} />;
-  }
+  const handleNavigate = () => {
+    navigate('/recommendations');
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
@@ -237,7 +70,7 @@ const Index = () => {
               <span className="text-2xl font-bold text-slate-800">SuitCraft AI</span>
             </div>
             <Button 
-              onClick={() => navigate('/recommendations')}
+              onClick={handleNavigate}
               className="bg-blue-600 hover:bg-blue-700"
             >
               Get Started
@@ -265,7 +98,7 @@ const Index = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
               size="lg" 
-              onClick={() => navigate('/recommendations')}
+              onClick={handleNavigate}
               className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-lg px-8 py-6"
             >
               Start Your Style Journey
@@ -327,7 +160,7 @@ const Index = () => {
               </div>
               <Button 
                 size="lg" 
-                onClick={() => navigate('/recommendations')}
+                onClick={handleNavigate}
                 className="mt-8 bg-blue-600 hover:bg-blue-700"
               >
                 Try It Now
@@ -398,7 +231,7 @@ const Index = () => {
           </p>
           <Button 
             size="lg"
-            onClick={() => navigate('/recommendations')}
+            onClick={handleNavigate}
             className="bg-white text-blue-600 hover:bg-slate-50 text-lg px-8 py-6"
           >
             Get My Recommendation
