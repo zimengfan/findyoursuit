@@ -57,7 +57,8 @@ const PreferencesStep: React.FC<PreferencesStepProps> = ({ preferences, updatePr
                   : 'border-blue-500 bg-blue-50'
                 : 'border-slate-200 hover:border-blue-300'
             }`}
-            onClick={() => {
+            onClick={e => {
+              if (option.id === 'custom' && (e.target as HTMLElement).tagName === 'INPUT') return;
               if (option.id === 'custom') {
                 onSelect('custom:' + customColor);
               } else {
@@ -102,6 +103,7 @@ const PreferencesStep: React.FC<PreferencesStepProps> = ({ preferences, updatePr
                   }}
                   className="w-full"
                   onClick={e => e.stopPropagation()}
+                  onFocus={e => e.stopPropagation()}
                 />
               </div>
             )}

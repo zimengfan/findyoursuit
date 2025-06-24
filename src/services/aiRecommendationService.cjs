@@ -70,8 +70,8 @@ async function generateOutfitImage(recommendation, preferences) {
 function getSkinToneDescription(skinTone) {
   const skinToneMap = {
     'fair': 'fair-skinned',
-    'medium': 'medium-skinned',
-    'olive': 'olive-skinned',
+    'medium': 'lightly tanned skin (not brown, more of a healthy beige)',
+    'olive': 'light brown skin with warm undertones',
     'dark': 'dark-skinned'
   };
   return skinToneMap[skinTone] || 'medium-skinned'; // default to medium if not specified
