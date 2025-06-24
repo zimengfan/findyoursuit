@@ -5,31 +5,31 @@ function validateOutfitRecommendation(recommendation) {
   }
 
   // Required top-level fields
-  const requiredFields = ['suit', 'shirt', 'tie', 'shoes', 'accessories', 'justification', 'seasonalNotes', 'styleNotes'];
+  const requiredFields = ['suit', 'shirt', 'neckwear', 'shoes', 'accessories', 'justification', 'seasonalNotes', 'styleNotes'];
   if (!requiredFields.every(field => field in recommendation)) {
     return false;
   }
 
   // Validate suit object
-  const suitFields = ['color', 'fabric', 'pattern', 'fit', 'justification'];
+  const suitFields = ['style', 'color', 'fabric', 'pattern', 'fit', 'justification'];
   if (!validateComponent(recommendation.suit, suitFields)) {
     return false;
   }
 
   // Validate shirt object
-  const shirtFields = ['color', 'fabric', 'collar', 'fit', 'justification'];
+  const shirtFields = ['color', 'fabric', 'collar', 'cuffs', 'fit', 'justification'];
   if (!validateComponent(recommendation.shirt, shirtFields)) {
     return false;
   }
 
-  // Validate tie object
-  const tieFields = ['color', 'pattern', 'material', 'justification'];
-  if (!validateComponent(recommendation.tie, tieFields)) {
+  // Validate neckwear object
+  const neckwearFields = ['type', 'color', 'pattern', 'material', 'justification'];
+  if (!validateComponent(recommendation.neckwear, neckwearFields)) {
     return false;
   }
 
   // Validate shoes object
-  const shoesFields = ['type', 'color', 'material', 'justification'];
+  const shoesFields = ['type', 'color', 'material', 'style', 'justification'];
   if (!validateComponent(recommendation.shoes, shoesFields)) {
     return false;
   }
@@ -44,6 +44,14 @@ function validateOutfitRecommendation(recommendation) {
   if (typeof recommendation.justification !== 'string' ||
       typeof recommendation.seasonalNotes !== 'string') {
     return false;
+  }
+
+  // Validate optional layering object if present
+  if (recommendation.layering) {
+    if (typeof recommendation.layering !== 'object') {
+      return false;
+    }
+    // Layering fields are optional, so we don't validate their presence
   }
 
   return true;

@@ -24,7 +24,7 @@ async function generateOutfitImage(recommendation, preferences) {
         occasionKey = 'default';
       }
       const background = occasionBackgrounds[occasionKey] || occasionBackgrounds['default'];
-      const prompt = `Full body of a ${skinToneDescription} man wearing ${recommendation.suit.color} ${recommendation.suit.fit} suit, ${recommendation.shirt.color} shirt, ${recommendation.tie.color} tie, ${recommendation.shoes.color} shoes. Full body photo, ${background}`;
+      const prompt = `Full body of a ${skinToneDescription} man wearing ${recommendation.suit.color} ${recommendation.suit.fit} suit, ${recommendation.shirt.color} shirt, ${recommendation.neckwear.color} ${recommendation.neckwear.type}, ${recommendation.shoes.color} shoes. Full body photo, ${background}`;
 
       // Spawn Python process
       const pythonProcess = spawn('python', ['src/services/imageGeneration.py', prompt]);
