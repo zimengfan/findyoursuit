@@ -340,13 +340,20 @@ Season: ${preferences.season || 'Not specified'}
 Formality Level: ${preferences.formalityLevel || 'Not specified'}
 Full Preferences: ${JSON.stringify(preferences)}`;
     
-    const response = await axios.post('https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation', {
-      model: 'qwen3-32b',
-      input: { prompt: `${systemPrompt}\n${userPrompt}` },
-      parameters: { result_format: 'text' }
-    }, {
-      headers: { 'Authorization': `Bearer ${process.env.DASHSCOPE_API_KEY}` }
-    });
+    const response = await axios.post(
+      'https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions',
+      {
+        model: 'qwen3-32b',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt }
+        ],
+        temperature: 1.2
+      },
+      {
+        headers: { Authorization: `Bearer ${process.env.DASHSCOPE_API_KEY}` }
+      }
+    );
 
     const text = response.data.output.text;
     console.log('Raw LLM output:', text);
