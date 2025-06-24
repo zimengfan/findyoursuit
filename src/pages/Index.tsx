@@ -139,10 +139,10 @@ const Index = () => {
   };
 
   useEffect(() => {
-    if (mainContentRef.current) {
+    if (showFlow && mainContentRef.current) {
       mainContentRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
-  }, [currentStep]);
+  }, [showFlow, currentStep]);
 
   if (!showFlow) {
     return <LandingPage onStart={() => setShowFlow(true)} />;
