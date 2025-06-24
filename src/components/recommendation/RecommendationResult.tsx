@@ -146,16 +146,16 @@ const RecommendationResult: React.FC<RecommendationResultProps> = ({
                   <div className="text-center">
                     <Shirt className="h-24 w-24 mx-auto text-slate-400 mb-4" />
                     <h3 className="text-lg font-semibold text-slate-600 mb-2">
-                      {recommendation.suit.color} {recommendation.suit.style} {recommendation.suit.fit} Suit
+                      {String(recommendation.suit?.color || '') + ' ' + String(recommendation.suit?.style || '') + ' ' + String(recommendation.suit?.fit || '')} Suit
                     </h3>
                     <p className="text-slate-500">
-                      {recommendation.shirt.color} {recommendation.shirt.collar} Shirt
+                      {String(recommendation.shirt?.color || '') + ' ' + String(recommendation.shirt?.collar || '')} Shirt
                     </p>
                     <p className="text-slate-500">
-                      {recommendation.neckwear.color} {recommendation.neckwear.type}
+                      {String(recommendation.neckwear?.color || '') + ' ' + String(recommendation.neckwear?.type || '')}
                     </p>
                     <p className="text-slate-500">
-                      {recommendation.shoes.color} {recommendation.shoes.style}
+                      {String(recommendation.shoes?.color || '') + ' ' + String(recommendation.shoes?.style || '')}
                     </p>
                   </div>
                 )}
