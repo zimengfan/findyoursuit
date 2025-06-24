@@ -6,9 +6,25 @@ const { spawn } = require('child_process');
 async function generateOutfitImage(recommendation, preferences) {
   return new Promise((resolve, reject) => {
     try {
-      // Create a concise prompt within 500 characters
       const skinToneDescription = getSkinToneDescription(preferences.skinTone);
-      const prompt = `Full body of a ${skinToneDescription} man wearing ${recommendation.suit.color} ${recommendation.suit.fit} suit, ${recommendation.shirt.color} shirt, ${recommendation.tie.color} tie, ${recommendation.shoes.color} shoes. Full body photo, studio lighting`;
+      // Determine background based on occasion
+      const occasionBackgrounds = {
+        'wedding': 'elegant wedding venue background',
+        'interview': 'modern office background',
+        'business': 'corporate boardroom background',
+        'date': 'romantic restaurant background',
+        'gala': 'luxurious gala event background',
+        'graduation': 'university ceremony background',
+        'funeral': 'respectful, muted background',
+        'cocktail': 'stylish cocktail party background',
+        'default': 'studio background that matches the occasion'
+      };
+      let occasionKey = preferences.occasion;
+      if (occasionKey && occasionKey.startsWith('custom:')) {
+        occasionKey = 'default';
+      }
+      const background = occasionBackgrounds[occasionKey] || occasionBackgrounds['default'];
+      const prompt = `Full body of a ${skinToneDescription} man wearing ${recommendation.suit.color} ${recommendation.suit.fit} suit, ${recommendation.shirt.color} shirt, ${recommendation.tie.color} tie, ${recommendation.shoes.color} shoes. Full body photo, ${background}`;
 
       // Spawn Python process
       const pythonProcess = spawn('python', ['src/services/imageGeneration.py', prompt]);
@@ -63,7 +79,18 @@ function getSkinToneDescription(skinTone) {
 
 async function getAIRecommendationWithImages(preferences) {
   try {
+    // Handle custom color preference
+    let suitColor = '';
+    if (preferences.colorPreference) {
+      if (preferences.colorPreference.startsWith('custom:')) {
+        suitColor = preferences.colorPreference.replace('custom:', '').trim();
+      } else if (preferences.colorPreference !== 'ai-pick') {
+        suitColor = preferences.colorPreference;
+      }
+    }
     const systemPrompt = `You are a professional suit stylist AI. Your primary responsibility is to STRICTLY ADHERE to the user's color preferences when suggesting outfits. When a specific color is requested for any item, you MUST use that exact color in your recommendation.
+
+You must generate recommendations that are DIVERSE and CREATIVE, and that VARY based on the user's occasion, season, and preferences. Do NOT repeat the same color or style for different occasions. Always justify your choices in detail.
 
 Given the user's occasion and preferences, generate a JSON object with the following structure:
 {
@@ -105,10 +132,11 @@ Important rules:
 3. Ensure all color choices are explicitly justified in the response
 4. Consider the occasion and season when suggesting colors
 5. Maintain appropriate contrast between suit, shirt, and tie
+6. Make each recommendation unique and tailored to the user's input
 
 Only output valid JSON. Do not include any explanation, markdown, or code fences.`;
 
-    const userPrompt = `Occasion: ${preferences.occasion}\nColor Preferences: ${preferences.suitColor || 'Not specified'}\nFull Preferences: ${JSON.stringify(preferences)}`;
+    const userPrompt = `Occasion: ${preferences.occasion}\nColor Preferences: ${suitColor || 'Not specified'}\nFull Preferences: ${JSON.stringify(preferences)}`;
     
     const response = await axios.post('https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation', {
       model: 'qwen-turbo',
@@ -127,14 +155,14 @@ Only output valid JSON. Do not include any explanation, markdown, or code fences
       recommendation = JSON.parse(cleaned);
       
       // Validate color preferences
-      if (preferences.suitColor && 
-          recommendation.suit.color.toLowerCase() !== preferences.suitColor.toLowerCase()) {
-        throw new Error(`AI recommendation ignored user's suit color preference. User wanted: ${preferences.suitColor}, AI suggested: ${recommendation.suit.color}`);
+      if (suitColor && 
+          recommendation.suit.color.toLowerCase() !== suitColor.toLowerCase()) {
+        throw new Error(`AI recommendation ignored user's suit color preference. User wanted: ${suitColor}, AI suggested: ${recommendation.suit.color}`);
       }
 
       // Ensure navy blue isn't used as a default
       if (recommendation.suit.color.toLowerCase().includes('navy') && 
-          (!preferences.suitColor || !preferences.suitColor.toLowerCase().includes('navy'))) {
+          (!suitColor || !suitColor.toLowerCase().includes('navy'))) {
         throw new Error('AI defaulted to navy blue when not specifically requested');
       }
     } catch (e) {

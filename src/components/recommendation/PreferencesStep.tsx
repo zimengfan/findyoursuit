@@ -1,8 +1,9 @@
-import React from 'react';
-import { UserPreferences } from '@/pages/Index';
+import React, { useState } from 'react';
+import type { UserPreferences } from '@/pages/Recommendations';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Sparkles } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 
 interface PreferencesStepProps {
   preferences: UserPreferences;
@@ -10,6 +11,8 @@ interface PreferencesStepProps {
 }
 
 const PreferencesStep: React.FC<PreferencesStepProps> = ({ preferences, updatePreferences }) => {
+  const [customColor, setCustomColor] = useState(preferences.colorPreference.startsWith('custom:') ? preferences.colorPreference.replace('custom:', '') : '');
+
   const seasons = [
     { id: 'spring', label: 'Spring', colors: 'text-green-600' },
     { id: 'summer', label: 'Summer', colors: 'text-yellow-600' },
@@ -23,7 +26,7 @@ const PreferencesStep: React.FC<PreferencesStepProps> = ({ preferences, updatePr
     { id: 'earth', label: 'Earth Tones (Brown, Tan, Olive)' },
     { id: 'bold', label: 'Bold Colors (Burgundy, Forest Green)' },
     { id: 'light', label: 'Light Colors (Light Gray, Cream)' },
-    { id: 'no-preference', label: 'No Preference' }
+    { id: 'custom', label: 'Custom (Enter your own color)' }
   ];
 
   const formalityLevels = [
@@ -48,13 +51,19 @@ const PreferencesStep: React.FC<PreferencesStepProps> = ({ preferences, updatePr
           <Card
             key={option.id}
             className={`p-4 cursor-pointer transition-all duration-200 border hover:shadow-md ${
-              selectedValue === option.id
+              (selectedValue === option.id || (option.id === 'custom' && selectedValue.startsWith('custom:')))
                 ? option.id === 'ai-pick' 
                   ? 'border-purple-500 bg-gradient-to-r from-purple-50 to-blue-50'
                   : 'border-blue-500 bg-blue-50'
                 : 'border-slate-200 hover:border-blue-300'
             }`}
-            onClick={() => onSelect(option.id)}
+            onClick={() => {
+              if (option.id === 'custom') {
+                onSelect('custom:' + customColor);
+              } else {
+                onSelect(option.id);
+              }
+            }}
           >
             <div className="flex items-start space-x-3">
               {option.icon && (
@@ -75,10 +84,26 @@ const PreferencesStep: React.FC<PreferencesStepProps> = ({ preferences, updatePr
                 )}
               </div>
             </div>
-            {selectedValue === option.id && (
+            {(selectedValue === option.id || (option.id === 'custom' && selectedValue.startsWith('custom:'))) && (
               <Badge className={option.id === 'ai-pick' ? 'bg-purple-500' : 'bg-blue-500'}>
                 ✓
               </Badge>
+            )}
+            {/* Custom color input */}
+            {option.id === 'custom' && (selectedValue.startsWith('custom:') || selectedValue === 'custom') && (
+              <div className="mt-4">
+                <Input
+                  type="text"
+                  placeholder="Enter your preferred color (e.g. Emerald Green, Sky Blue)"
+                  value={customColor}
+                  onChange={e => {
+                    setCustomColor(e.target.value);
+                    onSelect('custom:' + e.target.value);
+                  }}
+                  className="w-full"
+                  onClick={e => e.stopPropagation()}
+                />
+              </div>
             )}
           </Card>
         ))}
