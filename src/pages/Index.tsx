@@ -19,7 +19,49 @@ export interface UserPreferences {
   age: string;
 }
 
+const LandingPage: React.FC<{ onStart: () => void }> = ({ onStart }) => (
+  <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+    <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 text-white py-16 w-full">
+      <div className="container mx-auto px-4 text-center">
+        <div className="flex items-center justify-center mb-6">
+          <Shirt className="h-12 w-12 mr-4 text-blue-300" />
+          <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-300 to-indigo-300 bg-clip-text text-transparent">
+            SuitCraft AI
+          </h1>
+        </div>
+        <p className="text-xl text-blue-100 max-w-2xl mx-auto">
+          Discover your perfect suit with AI-powered recommendations. Get personalized, multi-view outfit previews tailored to your style, body type, and preferences. Try it for free—no signup required!
+        </p>
+        <button
+          onClick={onStart}
+          className="mt-10 px-10 py-4 rounded-lg text-lg font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg transition-colors duration-200"
+        >
+          Try for Free
+        </button>
+      </div>
+    </div>
+    <div className="container mx-auto px-4 py-12 text-center">
+      <h2 className="text-3xl font-bold text-slate-800 mb-4">How it works</h2>
+      <div className="flex flex-col md:flex-row justify-center gap-8">
+        <div className="bg-white/80 rounded-xl shadow-md p-6 flex-1 min-w-[220px]">
+          <h3 className="text-xl font-semibold text-blue-700 mb-2">1. Tell Us About You</h3>
+          <p className="text-slate-700">Select your occasion, style, and preferences. Our AI learns your needs.</p>
+        </div>
+        <div className="bg-white/80 rounded-xl shadow-md p-6 flex-1 min-w-[220px]">
+          <h3 className="text-xl font-semibold text-blue-700 mb-2">2. Get AI Recommendations</h3>
+          <p className="text-slate-700">Receive a full outfit breakdown and see your look from multiple angles.</p>
+        </div>
+        <div className="bg-white/80 rounded-xl shadow-md p-6 flex-1 min-w-[220px]">
+          <h3 className="text-xl font-semibold text-blue-700 mb-2">3. Save or Share</h3>
+          <p className="text-slate-700">Download your recommendation or share it with friends instantly.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
 const Index = () => {
+  const [showFlow, setShowFlow] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [preferences, setPreferences] = useState<UserPreferences>({
     occasion: '',
@@ -101,6 +143,10 @@ const Index = () => {
       mainContentRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, [currentStep]);
+
+  if (!showFlow) {
+    return <LandingPage onStart={() => setShowFlow(true)} />;
+  }
 
   if (currentStep === 4 && recommendation) {
     return <RecommendationResult recommendation={recommendation} onReset={resetForm} />;
