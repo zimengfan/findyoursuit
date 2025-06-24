@@ -90,6 +90,29 @@ async function getAIRecommendationWithImages(preferences) {
     }
     const systemPrompt = `You are a professional suit stylist AI. Your primary responsibility is to create HIGHLY DIVERSE and OCCASION-APPROPRIATE outfit recommendations that STRICTLY ADHERE to the user's preferences.
 
+OCCASION-SPECIFIC COLOR GUIDELINES:
+- Black Tie/Gala: Consider midnight blue as an elegant alternative to black
+- Funeral: Dark colors (charcoal, deep navy, black) are appropriate
+- Wedding: Time and season-appropriate choices (lighter grays for day, darker for evening)
+- Business: Beyond standard navy/charcoal - consider deep burgundy, oxford gray, deep olive
+- Interview: Conservative but distinctive - slate blue, deep charcoal with subtle undertones
+- Cocktail: Embrace seasonally appropriate colors - burgundy, forest green, deep plum
+- Casual Events: Explore seasonal colors while maintaining sophistication
+
+COLOR DIVERSITY RULES:
+1. For formal occasions (funeral, interview, business):
+   - Primary focus on dark, conservative colors
+   - Consider subtle variations (e.g., midnight blue vs. navy)
+   - Incorporate sophistication through texture and subtle patterns
+2. For semi-formal occasions:
+   - Expand beyond standard navy and charcoal
+   - Consider rich, deep colors appropriate to season
+   - Use color psychology to enhance presence
+3. For casual occasions:
+   - Embrace seasonal appropriate colors
+   - Consider location and time of day
+   - Balance creativity with sophistication
+
 OCCASION-SPECIFIC GUIDELINES:
 - Black Tie/Gala: Tuxedo or formal dinner jacket with appropriate accessories
 - Wedding: Vary based on time (morning coat for day, tuxedo for evening)
@@ -208,12 +231,29 @@ Full Preferences: ${JSON.stringify(preferences)}`;
         throw new Error(`AI recommendation ignored user's suit color preference. User wanted: ${suitColor}, AI suggested: ${recommendation.suit.color}`);
       }
 
-      // Only validate against standard colors if user didn't pick 'ai-pick' or if it's not a formal occasion
-      if (!suitColor && preferences.colorPreference !== 'ai-pick' &&
-          !['funeral', 'interview', 'business'].includes(preferences.occasion) &&
-          (recommendation.suit.color.toLowerCase().includes('navy') || 
-           recommendation.suit.color.toLowerCase().includes('charcoal'))) {
-        throw new Error('AI defaulted to standard colors when not specifically requested');
+      // Track color diversity and appropriateness
+      const standardColors = ['navy', 'charcoal', 'black'];
+      const formalOccasions = ['funeral', 'interview', 'business'];
+      const isStandardColor = standardColors.some(color => 
+        recommendation.suit.color.toLowerCase().includes(color)
+      );
+
+      // For non-formal occasions, encourage more diverse color choices
+      if (!suitColor && 
+          !formalOccasions.includes(preferences.occasion) && 
+          isStandardColor && 
+          Math.random() > 0.3) { // Allow standard colors ~30% of the time for variety
+        console.log('Encouraging more diverse color selection for non-formal occasion');
+        throw new Error('Please suggest a more occasion-appropriate or creative color combination while maintaining style appropriateness');
+      }
+
+      // For formal occasions, still allow some controlled variety
+      if (!suitColor && 
+          formalOccasions.includes(preferences.occasion) && 
+          isStandardColor && 
+          Math.random() > 0.7) { // Allow standard colors ~70% of the time for formal occasions
+        console.log('Encouraging subtle variety in formal wear');
+        throw new Error('Consider suggesting a subtle variation or appropriate alternative while maintaining formality');
       }
 
       // Validate occasion-appropriate formality
