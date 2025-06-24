@@ -254,6 +254,28 @@ You must generate recommendations that are DIVERSE and CREATIVE, varying signifi
 - User's style preferences
 - Cultural context of the event
 
+NECKWEAR AND SUIT COLOR DIVERSITY FOR CREATIVE OCCASIONS:
+- For creative occasions (weddings, cocktail, casual, etc.):
+  - Vary neckwear types: sometimes a necktie, sometimes a bow tie, sometimes an ascot, sometimes a neckerchief, and sometimes no neckwear if the look is strong enough.
+  - Vary suit colors and patterns: explore a wide range of tasteful, creative, and seasonally appropriate options. Do not repeat the same color or style for every recommendation.
+  - Always ensure the overall look is harmonious and appropriate for the occasion and season.
+- For business, interview, and formal: only recommend classic neckties and conservative suit colors/styles.
+
+SUIT COLOR DIVERSITY FOR CREATIVE OCCASIONS:
+- For creative occasions, do not default to slate blue or any single color.
+- Explore a wide range of creative, tasteful suit colors: forest green, burgundy, plum, teal, tobacco brown, pastel tones, dusty rose, ochre, deep purple, light olive, etc.
+- Vary the color choices between recommendations and avoid repetition.
+- Always ensure the color is appropriate for the occasion and season.
+
+EXAMPLES OF CREATIVE COMBINATIONS:
+- Forest green suit + cream shirt + burgundy necktie
+- Plum suit + light blue shirt + paisley ascot
+- Tobacco brown suit + white shirt + navy neckerchief
+- Teal suit + ecru shirt + patterned bow tie
+- Pastel pink suit + ivory shirt + no neckwear
+- Ochre suit + sage shirt + floral necktie
+- Deep purple suit + gray shirt + silk neckerchief
+
 Given the user's occasion and preferences, generate a JSON object with the following structure:
 {
   suit: { 
