@@ -1,29 +1,44 @@
-import { UserPreferences } from '@/pages/Index';
+import { UserPreferences } from '@/pages/Recommendations';
 
 export interface OutfitRecommendation {
   suit: {
     color: string;
     style: string;
     fabric: string;
+    pattern: string;
     fit: string;
+    pieces: string[];
+    justification: string;
   };
   shirt: {
     color: string;
-    style: string;
-    pattern: string;
+    fabric: string;
+    collar: string;
+    cuffs: string;
+    fit: string;
+    justification: string;
   };
-  tie: {
+  neckwear: {
+    type: string;
     color: string;
     pattern: string;
     material: string;
+    justification: string;
   };
   shoes: {
-    style: string;
+    type: string;
     color: string;
+    material: string;
+    style: string;
+    justification: string;
   };
   accessories: string[];
+  layering?: {
+    outerwear?: string;
+    vest?: string;
+    pocket_square?: string;
+  };
   justification: string;
-  imageQuery: string;
   seasonalNotes: string;
   styleNotes: string[];
   images?: string[];
@@ -46,30 +61,27 @@ const createRecommendation = (prefs: UserPreferences): OutfitRecommendation => {
   // Suit recommendations based on occasion and formality
   const suitRecommendation = getSuitRecommendation(prefs);
   const shirtRecommendation = getShirtRecommendation(prefs, suitRecommendation);
-  const tieRecommendation = getTieRecommendation(prefs, suitRecommendation, shirtRecommendation);
+  const neckwearRecommendation = getNeckwearRecommendation(prefs, suitRecommendation, shirtRecommendation);
   const shoesRecommendation = getShoesRecommendation(prefs, suitRecommendation);
   const accessories = getAccessories(prefs);
 
   // Generate justification
-  const justification = generateJustification(prefs, suitRecommendation, shirtRecommendation, tieRecommendation);
+  const justification = generateJustification(prefs, suitRecommendation, shirtRecommendation, neckwearRecommendation);
   
   // Create image query for visual representation
-  const imageQuery = `${suitRecommendation.color} ${suitRecommendation.fit} suit with ${shirtRecommendation.color} ${shirtRecommendation.style} shirt and ${tieRecommendation.color} ${tieRecommendation.pattern} tie, ${shoesRecommendation.color} ${shoesRecommendation.style}, professional photography, full-body shot, elegant styling`;
+  const imageQuery = `${suitRecommendation.color} ${suitRecommendation.fit} suit with ${shirtRecommendation.color} ${shirtRecommendation.collar} shirt and ${neckwearRecommendation.color} ${neckwearRecommendation.type}, ${shoesRecommendation.color} ${shoesRecommendation.type}, professional photography, full-body shot, elegant styling`;
 
   // Seasonal notes
-  const seasonalNotes = getSeasonalNotes(prefs.season, suitRecommendation);
-
-  // Style notes
-  const styleNotes = getStyleNotes(prefs, suitRecommendation);
+  const seasonalNotes = getSeasonalNotes(prefs);
+  const styleNotes = getStyleNotes(prefs);
 
   return {
     suit: suitRecommendation,
     shirt: shirtRecommendation,
-    tie: tieRecommendation,
+    neckwear: neckwearRecommendation,
     shoes: shoesRecommendation,
     accessories,
     justification,
-    imageQuery,
     seasonalNotes,
     styleNotes
   };
@@ -77,9 +89,12 @@ const createRecommendation = (prefs: UserPreferences): OutfitRecommendation => {
 
 const getSuitRecommendation = (prefs: UserPreferences) => {
   let color = 'Navy';
-  let style = 'Two-piece';
+  let style = 'Single-breasted';
   let fabric = 'Wool';
-  let fit = 'Classic';
+  let pattern = 'Solid';
+  let fit = 'Tailored';
+  let pieces = ['Jacket', 'Trousers'];
+  let justification = 'Classic and versatile choice for any occasion';
 
   // Color based on occasion and preference
   switch (prefs.occasion) {
@@ -139,13 +154,16 @@ const getSuitRecommendation = (prefs: UserPreferences) => {
     color = 'Black';
   }
 
-  return { color, style, fabric, fit };
+  return { color, style, fabric, pattern, fit, pieces, justification };
 };
 
 const getShirtRecommendation = (prefs: UserPreferences, suit: any) => {
   let color = 'White';
-  let style = 'Dress';
-  let pattern = 'Solid';
+  let fabric = 'Cotton';
+  let collar = 'Spread';
+  let cuffs = 'Barrel';
+  let fit = 'Slim';
+  let justification = 'Classic and versatile choice';
 
   // Shirt color based on occasion and suit
   if (prefs.occasion === 'date' || prefs.occasion === 'cocktail') {
@@ -161,39 +179,45 @@ const getShirtRecommendation = (prefs: UserPreferences, suit: any) => {
     pattern = 'Subtle Pattern';
   }
 
-  return { color, style, pattern };
+  return { color, fabric, collar, cuffs, fit, justification };
 };
 
-const getTieRecommendation = (prefs: UserPreferences, suit: any, shirt: any) => {
+const getNeckwearRecommendation = (prefs: UserPreferences, suit: any, shirt: any) => {
+  let type = 'Bow Tie';
   let color = 'Burgundy';
   let pattern = 'Solid';
   let material = 'Silk';
+  let justification = 'Elegant and formal choice';
 
   if (prefs.formalityLevel === 'black-tie') {
-    return { color: 'Black', pattern: 'Bow Tie', material: 'Silk' };
+    return { type: 'Bow Tie', color: 'Black', pattern: 'Solid', material: 'Silk', justification: 'Traditional black tie attire' };
   }
 
-  // Tie color harmony
+  // Neckwear type based on formality
+  if (prefs.formalityLevel === 'business-casual') {
+    type = 'Notch Tie';
+    justification = 'Business-appropriate choice';
+  }
+
+  // Neckwear color harmony
   if (suit.color === 'Navy') {
     color = shirt.color === 'Light Pink' ? 'Burgundy' : 'Gold';
-  } else if (suit.color === 'Charcoal') {
-    color = 'Silver';
+    justification = `Complements the ${suit.color.toLowerCase()} suit and ${shirt.color.toLowerCase()} shirt`;
   }
 
-  // Pattern based on formality
-  if (prefs.formalityLevel === 'business-casual') {
-    pattern = 'Subtle Pattern';
-  }
-
-  return { color, pattern, material };
+  return { type, color, pattern, material, justification };
 };
 
 const getShoesRecommendation = (prefs: UserPreferences, suit: any) => {
-  let style = 'Oxford';
+  let type = 'Oxford';
   let color = 'Black';
+  let material = 'Leather';
+  let style = 'Oxford';
+  let justification = 'Classic formal footwear';
 
   if (suit.color === 'Navy' && prefs.formalityLevel !== 'formal') {
     color = 'Brown';
+    justification = 'Versatile choice that pairs well with navy';
   }
 
   if (prefs.formalityLevel === 'business-casual') {
@@ -202,7 +226,7 @@ const getShoesRecommendation = (prefs: UserPreferences, suit: any) => {
     style = 'Patent Leather Oxford';
   }
 
-  return { style, color };
+  return { type, color, material, style, justification };
 };
 
 const getAccessories = (prefs: UserPreferences): string[] => {
@@ -229,7 +253,7 @@ const getAccessories = (prefs: UserPreferences): string[] => {
   return [...new Set(accessories)]; // Remove duplicates
 };
 
-const generateJustification = (prefs: UserPreferences, suit: any, shirt: any, tie: any): string => {
+const generateJustification = (prefs: UserPreferences, suit: any, shirt: any, neckwear: any): string => {
   const occasion = prefs.occasion.charAt(0).toUpperCase() + prefs.occasion.slice(1);
   
   let justification = `This ${suit.color.toLowerCase()} ${suit.fit.toLowerCase()} suit is perfect for your ${occasion.toLowerCase()}. `;
@@ -238,7 +262,7 @@ const generateJustification = (prefs: UserPreferences, suit: any, shirt: any, ti
   justification += `while the ${suit.fit.toLowerCase()} cut ${getFitJustification(suit.fit, prefs.bodyType)}. `;
   
   justification += `The ${shirt.color.toLowerCase()} shirt ${getShirtJustification(shirt.color, suit.color)}, `;
-  justification += `and the ${tie.color.toLowerCase()} tie ${getTieJustification(tie.color, suit.color, shirt.color)}. `;
+  justification += `and the ${neckwear.color.toLowerCase()} ${neckwear.type.toLowerCase()} ${getNeckwearJustification(neckwear.type, suit.color, shirt.color)}. `;
   
   justification += `This combination strikes the perfect balance between ${getFormalityDescription(prefs.formalityLevel)} and personal style.`;
   
@@ -290,10 +314,9 @@ const getShirtJustification = (shirtColor: string, suitColor: string): string =>
   return 'complements the overall look';
 };
 
-const getTieJustification = (tieColor: string, suitColor: string, shirtColor: string): string => {
-  if (tieColor === 'Burgundy') return 'adds rich warmth and completes the color harmony';
-  if (tieColor === 'Gold') return 'introduces elegant brightness that ties the look together';
-  if (tieColor === 'Silver') return 'provides sophisticated metallic accent';
+const getNeckwearJustification = (type: string, suitColor: string, shirtColor: string): string => {
+  if (type === 'Bow Tie') return 'adds rich warmth and completes the color harmony';
+  if (type === 'Notch Tie') return 'introduces elegant brightness that ties the look together';
   return 'completes the ensemble perfectly';
 };
 
@@ -307,31 +330,28 @@ const getFormalityDescription = (formality: string): string => {
   }
 };
 
-const getSeasonalNotes = (season: string, suit: any): string => {
+const getSeasonalNotes = (prefs: UserPreferences): string => {
+  const season = prefs.season;
   switch (season) {
     case 'summer':
-      return `Perfect for ${season} with ${suit.fabric.toLowerCase()} that breathes well and keeps you comfortable in warm weather.`;
+      return `Perfect for summer with versatile fabric that transitions beautifully between temperatures.`;
     case 'winter':
-      return `Ideal for ${season} with ${suit.fabric.toLowerCase()} that provides warmth while maintaining elegance.`;
+      return `Ideal for winter with heavy wool that provides warmth while maintaining elegance.`;
     case 'spring':
-      return `Great for ${season} with versatile fabric that transitions beautifully between temperatures.`;
+      return `Great for spring with versatile fabric that transitions beautifully between temperatures.`;
     case 'fall':
-      return `Excellent for ${season} with rich tones that complement the changing leaves and cooler weather.`;
+      return `Excellent for fall with medium-weight fabric that adapts to changing temperatures.`;
     default:
-      return 'Suitable for year-round wear with classic styling.';
+      return `Versatile fabric choice suitable for any season.`;
   }
 };
 
-const getStyleNotes = (prefs: UserPreferences, suit: any): string[] => {
+const getStyleNotes = (prefs: UserPreferences): string[] => {
   const notes = [];
   
-  notes.push(`${suit.fit} cut enhances your ${prefs.bodyType} build`);
-  notes.push(`${suit.color} works beautifully with your ${prefs.skinTone} skin tone`);
+  notes.push(`The cut enhances your ${prefs.bodyType} build`);
+  notes.push(`The colors work beautifully with your ${prefs.skinTone} skin tone`);
   notes.push(`Perfect formality level for ${prefs.occasion} events`);
-  
-  if (prefs.formalityLevel === 'black-tie' || prefs.formalityLevel === 'formal') {
-    notes.push('Consider having the suit professionally tailored for a perfect fit');
-  }
   
   return notes;
 };

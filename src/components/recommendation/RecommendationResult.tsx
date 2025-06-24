@@ -146,13 +146,13 @@ const RecommendationResult: React.FC<RecommendationResultProps> = ({
                   <div className="text-center">
                     <Shirt className="h-24 w-24 mx-auto text-slate-400 mb-4" />
                     <h3 className="text-lg font-semibold text-slate-600 mb-2">
-                      {recommendation.suit.color} {recommendation.suit.fit} Suit
+                      {recommendation.suit.color} {recommendation.suit.style} {recommendation.suit.fit} Suit
                     </h3>
                     <p className="text-slate-500">
-                      {recommendation.shirt.color} {recommendation.shirt.style} Shirt
+                      {recommendation.shirt.color} {recommendation.shirt.collar} Shirt
                     </p>
                     <p className="text-slate-500">
-                      {recommendation.tie.color} {recommendation.tie.pattern}
+                      {recommendation.neckwear.color} {recommendation.neckwear.type}
                     </p>
                     <p className="text-slate-500">
                       {recommendation.shoes.color} {recommendation.shoes.style}
@@ -183,7 +183,7 @@ const RecommendationResult: React.FC<RecommendationResultProps> = ({
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-slate-700">Suit:</span>
                     <Badge variant="secondary" className="text-sm">
-                      {recommendation.suit.color} {recommendation.suit.fit}
+                      {recommendation.suit.color} {recommendation.suit.style} {recommendation.suit.fit}
                     </Badge>
                   </div>
                   
@@ -197,14 +197,14 @@ const RecommendationResult: React.FC<RecommendationResultProps> = ({
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-slate-700">Shirt:</span>
                     <Badge variant="secondary" className="text-sm">
-                      {recommendation.shirt.color} {recommendation.shirt.style}
+                      {recommendation.shirt.color} {recommendation.shirt.collar}
                     </Badge>
                   </div>
                   
                   <div className="flex justify-between items-center">
-                    <span className="font-semibold text-slate-700">Tie:</span>
+                    <span className="font-semibold text-slate-700">Neckwear:</span>
                     <Badge variant="secondary" className="text-sm">
-                      {recommendation.tie.color} {recommendation.tie.pattern}
+                      {recommendation.neckwear.color} {recommendation.neckwear.type}
                     </Badge>
                   </div>
                   
@@ -216,6 +216,32 @@ const RecommendationResult: React.FC<RecommendationResultProps> = ({
                   </div>
                   
                   <Separator />
+                  
+                  {recommendation.layering && (
+                    <>
+                      <div>
+                        <span className="font-semibold text-slate-700 block mb-2">Layering:</span>
+                        <div className="flex flex-wrap gap-2">
+                          {recommendation.layering.outerwear && (
+                            <Badge variant="outline" className="text-xs">
+                              {recommendation.layering.outerwear}
+                            </Badge>
+                          )}
+                          {recommendation.layering.vest && (
+                            <Badge variant="outline" className="text-xs">
+                              {recommendation.layering.vest}
+                            </Badge>
+                          )}
+                          {recommendation.layering.pocket_square && (
+                            <Badge variant="outline" className="text-xs">
+                              Pocket Square: {recommendation.layering.pocket_square}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                      <Separator />
+                    </>
+                  )}
                   
                   <div>
                     <span className="font-semibold text-slate-700 block mb-2">Accessories:</span>
