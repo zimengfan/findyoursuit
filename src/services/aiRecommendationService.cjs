@@ -70,9 +70,9 @@ async function generateOutfitImage(recommendation, preferences) {
     const photographyDetails = `Professional fashion photography with consistent studio lighting, clean background, and high-end editorial style. ${background}`;
 
     const prompts = [
-      `Full body photo, direct front view. ${characterDetails} ${outfitDetails} Capture all details of the outfit from the front. ${photographyDetails}`,
-      `Full body photo, direct side view of the exact same person. ${characterDetails} ${outfitDetails} Show the suit's silhouette and fit from the side profile. ${photographyDetails}`,
-      `Full body photo, direct back view of the exact same person. ${characterDetails} ${outfitDetails} Show how the suit fits and drapes from behind. ${photographyDetails}`
+      `Full body photo, direct front view (facing the camera). ${characterDetails} ${outfitDetails} Capture all details of the outfit from the front. This image must be a true front view. ${photographyDetails}`,
+      `Full body photo, direct side view (facing 90 degrees to the right, profile). ${characterDetails} ${outfitDetails} Show the suit's silhouette and fit from the side profile. This image must be a true side view, not a 3/4 or partial angle. ${photographyDetails}`,
+      `Full body photo, direct back view (facing away from the camera). ${characterDetails} ${outfitDetails} Show how the suit fits and drapes from behind. This image must be a true back view. ${photographyDetails}`
     ];
     
     const imagePromises = prompts.map(prompt => runImageGeneration(prompt));
@@ -108,16 +108,29 @@ async function getAIRecommendationWithImages(preferences) {
       }
     }
     const systemPrompt = `You are a creative and bold suit stylist AI with expertise in contemporary fashion, color theory, and innovative styling. Your approach should be:
-- When user selects "AI Pick": Be adventurous and creative, exploring unique combinations while maintaining occasion appropriateness
+- When user selects "AI Pick": Be adventurous and creative, exploring unique combinations while maintaining occasion appropriateness. Only be creative when the occasion allows. For business, interview, and formal, always default to professional, classic looks.
 - When user specifies preferences: Strictly adhere to their choices while optimizing within those constraints
+
+OCCASION FORMALITY RULES:
+- For business, interview, and formal events:
+  - Use only classic, conservative colors (navy, charcoal, black, deep gray, etc.)
+  - Only recommend neckties (no bow ties, ascots, or creative neckwear)
+  - No bold or unconventional color combinations
+  - No unusual patterns or textures
+  - Layering should be subtle and professional (e.g., waistcoat, classic overcoat)
+- For weddings, cocktail, and casual:
+  - Creativity and color are encouraged, but must still be tasteful and occasion-appropriate
+  - For weddings, avoid anything that would upstage the groom unless the user requests it
+- For funerals:
+  - Only dark, muted colors, classic styles, and minimal accessories
 
 STYLING PHILOSOPHY:
 1. For "AI Pick" selections:
-   - Push creative boundaries while respecting occasion
-   - Explore unexpected color combinations
+   - Push creative boundaries while respecting occasion (see above rules)
+   - Explore unexpected color combinations when allowed
    - Mix traditional and modern elements
-   - Experiment with layering and textures
-   - Consider avant-garde options when appropriate
+   - Experiment with layering and textures when appropriate
+   - Consider avant-garde options only for creative occasions
    - Don't default to conservative choices unless the occasion absolutely demands it
 
 2. For User-Specified preferences:
