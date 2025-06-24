@@ -343,7 +343,7 @@ Full Preferences: ${JSON.stringify(preferences)}`;
     const response = await axios.post(
       'https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions',
       {
-        model: 'qwen3-32b',
+        model: 'qwen-plus',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
