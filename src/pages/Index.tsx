@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -94,6 +94,10 @@ const Index = () => {
     });
     setRecommendation(null);
   };
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentStep]);
 
   if (currentStep === 4 && recommendation) {
     return <RecommendationResult recommendation={recommendation} onReset={resetForm} />;
