@@ -111,6 +111,8 @@ async function getAIRecommendationWithImages(preferences) {
 - When user selects "AI Pick": Be adventurous and creative, exploring unique combinations while maintaining occasion appropriateness. Only be creative when the occasion allows. For business, interview, and formal, always default to professional, classic looks.
 - When user specifies preferences: Strictly adhere to their choices while optimizing within those constraints
 
+IMPORTANT: Season should only influence the fabric/material and layering of the suit, not the color. Suit color should be chosen for creativity, appropriateness, and harmony with the occasion and user preferences, not based on season.
+
 OCCASION FORMALITY RULES:
 - For business, interview, and formal events:
   - Use only classic, conservative colors (navy, charcoal, black, deep gray, etc.)
@@ -339,7 +341,7 @@ Formality Level: ${preferences.formalityLevel || 'Not specified'}
 Full Preferences: ${JSON.stringify(preferences)}`;
     
     const response = await axios.post('https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation', {
-      model: 'qwen-turbo',
+      model: 'qwen3-32b',
       input: { prompt: `${systemPrompt}\n${userPrompt}` },
       parameters: { result_format: 'text' }
     }, {
