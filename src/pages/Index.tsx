@@ -60,6 +60,30 @@ const LandingPage: React.FC<{ onStart: () => void }> = ({ onStart }) => (
   </div>
 );
 
+// Custom smooth scroll function
+function smoothScrollToElement(element: HTMLElement, duration = 800) {
+  const startY = window.scrollY;
+  const endY = element.getBoundingClientRect().top + window.scrollY;
+  const distance = endY - startY;
+  let startTime: number | null = null;
+
+  function step(currentTime: number) {
+    if (!startTime) startTime = currentTime;
+    const timeElapsed = currentTime - startTime;
+    const progress = Math.min(timeElapsed / duration, 1);
+    window.scrollTo(0, startY + distance * easeInOutQuad(progress));
+    if (progress < 1) {
+      window.requestAnimationFrame(step);
+    }
+  }
+
+  function easeInOutQuad(t: number) {
+    return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+  }
+
+  window.requestAnimationFrame(step);
+}
+
 const Index = () => {
   const [showFlow, setShowFlow] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
@@ -140,7 +164,7 @@ const Index = () => {
 
   useEffect(() => {
     if (showFlow && mainContentRef.current) {
-      mainContentRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      smoothScrollToElement(mainContentRef.current, 800);
     }
   }, [showFlow, currentStep]);
 
