@@ -24,7 +24,7 @@ async function generateOutfitImage(recommendation, preferences) {
         occasionKey = 'default';
       }
       const background = occasionBackgrounds[occasionKey] || occasionBackgrounds['default'];
-      const prompt = `Full body of a ${skinToneDescription} man wearing ${recommendation.suit.color} ${recommendation.suit.fit} suit, ${recommendation.shirt.color} shirt, ${recommendation.neckwear.color} ${recommendation.neckwear.type}, ${recommendation.shoes.color} shoes. Full body photo, ${background}`;
+      const prompt = `Full body photo of the same ${skinToneDescription} man from three different angles (front, 3/4 view, and side view), wearing ${recommendation.suit.color} ${recommendation.suit.fit} suit, ${recommendation.shirt.color} shirt, ${recommendation.neckwear.color} ${recommendation.neckwear.type}, ${recommendation.shoes.color} shoes. Ensure the person's facial features, hair, and build remain exactly the same in all three views. Professional photography, ${background}. Maintain consistent lighting and composition across all views.`;
 
       // Spawn Python process
       const pythonProcess = spawn('python', ['src/services/imageGeneration.py', prompt]);
@@ -208,8 +208,9 @@ Full Preferences: ${JSON.stringify(preferences)}`;
         throw new Error(`AI recommendation ignored user's suit color preference. User wanted: ${suitColor}, AI suggested: ${recommendation.suit.color}`);
       }
 
-      // Ensure recommendations aren't defaulting to standard colors
-      if (!suitColor && 
+      // Only validate against standard colors if user didn't pick 'ai-pick' or if it's not a formal occasion
+      if (!suitColor && preferences.colorPreference !== 'ai-pick' &&
+          !['funeral', 'interview', 'business'].includes(preferences.occasion) &&
           (recommendation.suit.color.toLowerCase().includes('navy') || 
            recommendation.suit.color.toLowerCase().includes('charcoal'))) {
         throw new Error('AI defaulted to standard colors when not specifically requested');
