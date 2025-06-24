@@ -65,13 +65,14 @@ async function generateOutfitImage(recommendation, preferences) {
     }
     const background = occasionBackgrounds[occasionKey] || occasionBackgrounds['default'];
 
-    const characterDetails = `a ${skinToneDescription} man with short dark hair, maintaining a consistent appearance in all images.`;
-    const outfitDetails = `wearing ${recommendation.suit.color} ${recommendation.suit.fit} suit, ${recommendation.shirt.color} shirt, ${recommendation.neckwear.color} ${recommendation.neckwear.type}, ${recommendation.shoes.color} shoes.`;
+    const characterDetails = `a ${skinToneDescription} man with short dark hair and a well-proportioned build. The person should have exactly the same facial features, hair style, height, and build in all three images.`;
+    const outfitDetails = `wearing a perfectly tailored ${recommendation.suit.color} ${recommendation.suit.fit} suit, ${recommendation.shirt.color} shirt with ${recommendation.shirt.collar} collar, ${recommendation.neckwear.color} ${recommendation.neckwear.type}, and polished ${recommendation.shoes.color} ${recommendation.shoes.style} shoes.`;
+    const photographyDetails = `Professional fashion photography with consistent studio lighting, clean background, and high-end editorial style. ${background}`;
 
     const prompts = [
-      `Full body photo, front view. A single person, ${characterDetails} ${outfitDetails} Professional photography, ${background}.`,
-      `Full body photo, 3/4 view of the same person from the front view image. ${characterDetails} ${outfitDetails} Ensure facial features, hair, and build are identical to the front view. Professional photography, ${background}.`,
-      `Full body photo, side view of the same person from the previous images. ${characterDetails} ${outfitDetails} Ensure facial features, hair, and build are identical to the previous views. Professional photography, ${background}.`
+      `Full body photo, direct front view. ${characterDetails} ${outfitDetails} Capture all details of the outfit from the front. ${photographyDetails}`,
+      `Full body photo, direct side view of the exact same person. ${characterDetails} ${outfitDetails} Show the suit's silhouette and fit from the side profile. ${photographyDetails}`,
+      `Full body photo, direct back view of the exact same person. ${characterDetails} ${outfitDetails} Show how the suit fits and drapes from behind. ${photographyDetails}`
     ];
     
     const imagePromises = prompts.map(prompt => runImageGeneration(prompt));
@@ -106,30 +107,51 @@ async function getAIRecommendationWithImages(preferences) {
         suitColor = preferences.colorPreference;
       }
     }
-    const systemPrompt = `You are a professional suit stylist AI. Your primary responsibility is to create HIGHLY DIVERSE and OCCASION-APPROPRIATE outfit recommendations that STRICTLY ADHERE to the user's preferences.
+    const systemPrompt = `You are a professional suit stylist AI with expertise in color theory and contemporary fashion. Your primary responsibility is to create HIGHLY DIVERSE and OCCASION-APPROPRIATE outfit recommendations that STRICTLY ADHERE to the user's preferences while exploring creative and harmonious color combinations.
 
-OCCASION-SPECIFIC COLOR GUIDELINES:
-- Black Tie/Gala: Consider midnight blue as an elegant alternative to black
-- Funeral: Dark colors (charcoal, deep navy, black) are appropriate
-- Wedding: Time and season-appropriate choices (lighter grays for day, darker for evening)
-- Business: Beyond standard navy/charcoal - consider deep burgundy, oxford gray, deep olive
-- Interview: Conservative but distinctive - slate blue, deep charcoal with subtle undertones
-- Cocktail: Embrace seasonally appropriate colors - burgundy, forest green, deep plum
-- Casual Events: Explore seasonal colors while maintaining sophistication
+COLOR COMBINATION GUIDELINES:
+1. Wedding Attire:
+   - Morning: Pearl gray, champagne, light blue, sage green
+   - Afternoon: Steel blue, dove gray, light brown, slate
+   - Evening: Midnight blue, burgundy, deep purple, forest green
+   - Consider seasonal colors: pastels for spring, earth tones for fall
 
-COLOR DIVERSITY RULES:
-1. For formal occasions (funeral, interview, business):
-   - Primary focus on dark, conservative colors
-   - Consider subtle variations (e.g., midnight blue vs. navy)
-   - Incorporate sophistication through texture and subtle patterns
-2. For semi-formal occasions:
-   - Expand beyond standard navy and charcoal
-   - Consider rich, deep colors appropriate to season
-   - Use color psychology to enhance presence
-3. For casual occasions:
-   - Embrace seasonal appropriate colors
-   - Consider location and time of day
-   - Balance creativity with sophistication
+2. Business/Interview:
+   - Beyond basic navy/charcoal:
+     * Deep plum with subtle sheen
+     * Forest green for a confident presence
+     * Deep bordeaux for authority
+     * Slate blue for approachability
+     * Warm brown for trustworthiness
+   - Pair with complementary shirt and neckwear colors
+
+3. Formal Events:
+   - Midnight blue instead of black
+   - Deep emerald for sophistication
+   - Aubergine for luxury
+   - Bronze or copper tones for uniqueness
+   - Rich burgundy for elegance
+
+4. Casual/Social:
+   - Seasonal colors encouraged
+   - Light olive, tobacco brown, stone gray
+   - Dusty blue, sage green, warm terracotta
+   - Subtle patterns and textures
+
+COLOR HARMONY RULES:
+1. Use the 60-30-10 rule for color distribution
+2. Consider complementary and analogous color schemes
+3. Factor in the season and time of day
+4. Account for skin tone harmony
+5. Balance bold choices with neutral elements
+
+CREATIVE COLOR COMBINATIONS:
+- Navy suit + dusty rose shirt + deep purple tie
+- Charcoal suit + sage green shirt + burgundy tie
+- Brown suit + light blue shirt + orange-gold tie
+- Forest green suit + cream shirt + bronze tie
+- Plum suit + light gray shirt + silver tie
+- Slate blue suit + white shirt + coral tie
 
 OCCASION-SPECIFIC GUIDELINES:
 - Black Tie/Gala: Tuxedo or formal dinner jacket with appropriate accessories
