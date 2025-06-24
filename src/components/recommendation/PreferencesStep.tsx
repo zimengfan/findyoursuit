@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Sparkles } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface PreferencesStepProps {
   preferences: UserPreferences;
@@ -12,13 +13,6 @@ interface PreferencesStepProps {
 
 const PreferencesStep: React.FC<PreferencesStepProps> = ({ preferences, updatePreferences }) => {
   const [customColor, setCustomColor] = useState(preferences.colorPreference.startsWith('custom:') ? preferences.colorPreference.replace('custom:', '') : '');
-
-  const seasons = [
-    { id: 'spring', label: 'Spring', colors: 'text-green-600' },
-    { id: 'summer', label: 'Summer', colors: 'text-yellow-600' },
-    { id: 'fall', label: 'Fall/Autumn', colors: 'text-orange-600' },
-    { id: 'winter', label: 'Winter', colors: 'text-blue-600' }
-  ];
 
   const colorPreferences = [
     { id: 'ai-pick', label: 'Let AI Pick for You', icon: true, description: 'Our AI will choose the perfect colors based on your occasion and preferences' },
@@ -30,11 +24,11 @@ const PreferencesStep: React.FC<PreferencesStepProps> = ({ preferences, updatePr
   ];
 
   const formalityLevels = [
-    { id: 'ai-pick', label: 'Let AI Pick for You', icon: true, description: 'Our AI will determine the perfect formality level for your occasion' },
-    { id: 'black-tie', label: 'Black Tie', description: 'Most formal, tuxedo required' },
-    { id: 'formal', label: 'Formal', description: 'Dark suit, conservative styling' },
-    { id: 'semi-formal', label: 'Semi-Formal', description: 'Business attire, some flexibility' },
-    { id: 'business-casual', label: 'Business Casual', description: 'Relaxed professional look' }
+    { id: 'ai-pick', label: 'Let AI decide' },
+    { id: 'formal', label: 'Formal' },
+    { id: 'semi-formal', label: 'Semi-Formal' },
+    { id: 'business-casual', label: 'Business Casual' },
+    { id: 'black-tie', label: 'Black Tie' },
   ];
 
   const SelectionGrid: React.FC<{
@@ -114,7 +108,7 @@ const PreferencesStep: React.FC<PreferencesStepProps> = ({ preferences, updatePr
   );
 
   return (
-    <div>
+    <div className="space-y-6">
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold text-slate-800 mb-4">
           Your Style Preferences
@@ -125,14 +119,6 @@ const PreferencesStep: React.FC<PreferencesStepProps> = ({ preferences, updatePr
       </div>
 
       <SelectionGrid
-        title="What season is it?"
-        options={seasons}
-        selectedValue={preferences.season}
-        onSelect={(value) => updatePreferences({ season: value })}
-        keyName="season"
-      />
-
-      <SelectionGrid
         title="Color Preference"
         options={colorPreferences}
         selectedValue={preferences.colorPreference}
@@ -140,13 +126,26 @@ const PreferencesStep: React.FC<PreferencesStepProps> = ({ preferences, updatePr
         keyName="colorPreference"
       />
 
-      <SelectionGrid
-        title="Formality Level"
-        options={formalityLevels}
-        selectedValue={preferences.formalityLevel}
-        onSelect={(value) => updatePreferences({ formalityLevel: value })}
-        keyName="formalityLevel"
-      />
+      <div>
+        <label htmlFor="formality-level" className="block text-sm font-medium text-gray-700 mb-2">
+          Formality Level
+        </label>
+        <Select
+          value={preferences.formalityLevel}
+          onValueChange={(value) => updatePreferences({ formalityLevel: value })}
+        >
+          <SelectTrigger id="formality-level" className="w-full">
+            <SelectValue placeholder="Select formality level..." />
+          </SelectTrigger>
+          <SelectContent>
+            {formalityLevels.map((level) => (
+              <SelectItem key={level.id} value={level.id}>
+                {level.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
     </div>
   );
 };

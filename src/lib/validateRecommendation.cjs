@@ -5,7 +5,7 @@ function validateOutfitRecommendation(recommendation) {
   }
 
   // Required top-level fields
-  const requiredFields = ['suit', 'shirt', 'neckwear', 'shoes', 'accessories', 'justification', 'seasonalNotes', 'styleNotes'];
+  const requiredFields = ['suit', 'shirt', 'neckwear', 'shoes', 'accessories', 'justification', 'styleNotes'];
   if (!requiredFields.every(field => field in recommendation)) {
     return false;
   }
@@ -41,8 +41,7 @@ function validateOutfitRecommendation(recommendation) {
   }
 
   // Validate string fields
-  if (typeof recommendation.justification !== 'string' ||
-      typeof recommendation.seasonalNotes !== 'string') {
+  if (typeof recommendation.justification !== 'string') {
     return false;
   }
 

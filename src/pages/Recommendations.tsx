@@ -12,13 +12,21 @@ import { useNavigate } from 'react-router-dom';
 
 export interface UserPreferences {
   occasion: string;
-  season: string;
   colorPreference: string;
   formalityLevel: string;
   bodyType: string;
   skinTone: string;
   age: string;
 }
+
+const initialPreferences: UserPreferences = {
+  occasion: '',
+  colorPreference: 'ai-pick',
+  formalityLevel: 'ai-pick',
+  bodyType: 'average',
+  skinTone: 'medium',
+  age: '',
+};
 
 // Custom smooth scroll function
 function smoothScrollToElement(element: HTMLElement, duration = 800) {
@@ -46,15 +54,7 @@ function smoothScrollToElement(element: HTMLElement, duration = 800) {
 
 const Recommendations = () => {
   const [currentStep, setCurrentStep] = useState(1);
-  const [preferences, setPreferences] = useState<UserPreferences>({
-    occasion: '',
-    season: '',
-    colorPreference: '',
-    formalityLevel: '',
-    bodyType: '',
-    skinTone: '',
-    age: ''
-  });
+  const [preferences, setPreferences] = useState<UserPreferences>(initialPreferences);
   const [recommendation, setRecommendation] = useState<any>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const mainContentRef = useRef<HTMLDivElement>(null);
@@ -99,8 +99,7 @@ const Recommendations = () => {
       case 1:
         return preferences.occasion !== '';
       case 2:
-        return preferences.season !== '' && preferences.colorPreference !== '' && 
-               preferences.formalityLevel !== '';
+        return preferences.colorPreference !== '' && preferences.formalityLevel !== '';
       case 3:
         return preferences.bodyType !== '' && preferences.skinTone !== '';
       default:
@@ -110,15 +109,7 @@ const Recommendations = () => {
 
   const resetForm = () => {
     setCurrentStep(1);
-    setPreferences({
-      occasion: '',
-      season: '',
-      colorPreference: '',
-      formalityLevel: '',
-      bodyType: '',
-      skinTone: '',
-      age: ''
-    });
+    setPreferences(initialPreferences);
     setRecommendation(null);
   };
 

@@ -146,16 +146,16 @@ const RecommendationResult: React.FC<RecommendationResultProps> = ({
                   <div className="text-center">
                     <Shirt className="h-24 w-24 mx-auto text-slate-400 mb-4" />
                     <h3 className="text-lg font-semibold text-slate-600 mb-2">
-                      {String(recommendation.suit?.color || '') + ' ' + String(recommendation.suit?.style || '') + ' ' + String(recommendation.suit?.fit || '')} Suit
+                      {recommendation.suit.color} {recommendation.suit.style} {recommendation.suit.fit} Suit
                     </h3>
                     <p className="text-slate-500">
-                      {String(recommendation.shirt?.color || '') + ' ' + String(recommendation.shirt?.collar || '')} Shirt
+                      {recommendation.shirt.color} {recommendation.shirt.collar} Shirt
                     </p>
                     <p className="text-slate-500">
-                      {String(recommendation.neckwear?.color || '') + ' ' + String(recommendation.neckwear?.type || '')}
+                      {recommendation.neckwear.color} {recommendation.neckwear.type}
                     </p>
                     <p className="text-slate-500">
-                      {String(recommendation.shoes?.color || '') + ' ' + String(recommendation.shoes?.style || '')}
+                      {recommendation.shoes.color} {recommendation.shoes.style}
                     </p>
                   </div>
                 )}
@@ -183,13 +183,13 @@ const RecommendationResult: React.FC<RecommendationResultProps> = ({
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-slate-700">Suit:</span>
                     <Badge variant="secondary" className="text-sm">
-                      {(recommendation.suit?.color || '') + ' ' + (recommendation.suit?.style || '') + ' ' + (recommendation.suit?.fit || '')}
+                      {recommendation.suit.color} {recommendation.suit.style} {recommendation.suit.fit}
                     </Badge>
                   </div>
                   
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-slate-700">Fabric:</span>
-                    <span className="text-slate-600">{recommendation.suit?.fabric || ''}</span>
+                    <span className="text-slate-600">{recommendation.suit.fabric}</span>
                   </div>
                   
                   <Separator />
@@ -197,21 +197,21 @@ const RecommendationResult: React.FC<RecommendationResultProps> = ({
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-slate-700">Shirt:</span>
                     <Badge variant="secondary" className="text-sm">
-                      {(recommendation.shirt?.color || '') + ' ' + (recommendation.shirt?.collar || '')}
+                      {recommendation.shirt.color} {recommendation.shirt.collar}
                     </Badge>
                   </div>
                   
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-slate-700">Neckwear:</span>
                     <Badge variant="secondary" className="text-sm">
-                      {(recommendation.neckwear?.color || '') + ' ' + (recommendation.neckwear?.type || '')}
+                      {recommendation.neckwear.color} {recommendation.neckwear.type}
                     </Badge>
                   </div>
                   
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-slate-700">Shoes:</span>
                     <Badge variant="secondary" className="text-sm">
-                      {(recommendation.shoes?.color || '') + ' ' + (recommendation.shoes?.style || '')}
+                      {recommendation.shoes.color} {recommendation.shoes.style}
                     </Badge>
                   </div>
                   
@@ -246,7 +246,7 @@ const RecommendationResult: React.FC<RecommendationResultProps> = ({
                   <div>
                     <span className="font-semibold text-slate-700 block mb-2">Accessories:</span>
                     <div className="flex flex-wrap gap-2">
-                      {(Array.isArray(recommendation.accessories) ? recommendation.accessories : []).map((accessory, index) => (
+                      {recommendation.accessories.map((accessory, index) => (
                         <Badge key={index} variant="outline" className="text-xs">
                           {accessory}
                         </Badge>
@@ -259,29 +259,21 @@ const RecommendationResult: React.FC<RecommendationResultProps> = ({
               {/* Styling Justification */}
               <Card className="p-6 shadow-xl border-0 bg-white/80 backdrop-blur-sm">
                 <h2 className="text-2xl font-bold text-slate-800 mb-4">Why This Works</h2>
-                <p className="text-slate-700 leading-relaxed mb-4">
-                  {recommendation.justification}
-                </p>
-                
-                <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                  <h3 className="font-semibold text-blue-800 mb-2">Seasonal Note</h3>
-                  <p className="text-blue-700 text-sm">
-                    {recommendation.seasonalNotes}
-                  </p>
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-slate-800 flex items-center"><Sparkles className="h-4 w-4 mr-2 text-yellow-500" /> Justification</h3>
+                  <p className="text-slate-600 text-sm leading-relaxed">{recommendation.justification}</p>
                 </div>
-              </Card>
+                
+                <Separator />
 
-              {/* Style Notes */}
-              <Card className="p-6 shadow-xl border-0 bg-white/80 backdrop-blur-sm">
-                <h2 className="text-2xl font-bold text-slate-800 mb-4">Style Highlights</h2>
-                <ul className="space-y-2">
-                  {(Array.isArray(recommendation.styleNotes) ? recommendation.styleNotes : []).map((note, index) => (
-                    <li key={index} className="flex items-start">
-                      <span className="text-blue-600 mr-2">•</span>
-                      <span className="text-slate-700">{note}</span>
-                    </li>
-                  ))}
-                </ul>
+                <div>
+                  <h3 className="font-semibold text-slate-800">Style Notes</h3>
+                  <ul className="list-disc list-inside text-slate-600 text-sm space-y-1 mt-2">
+                    {recommendation.styleNotes.map((note: string, idx: number) => (
+                      <li key={idx}>{note}</li>
+                    ))}
+                  </ul>
+                </div>
               </Card>
             </div>
           </div>
