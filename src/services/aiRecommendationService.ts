@@ -1,15 +1,14 @@
 import { searchImages } from '@/lib/imageSearch';
 import { validateOutfitRecommendation } from '@/lib/validateRecommendation';
-import { UserPreferences } from '@/pages/Index';
+import { UserPreferences } from '@/pages/Recommendations';
 
 export interface OutfitRecommendationWithImages {
   suit: any;
   shirt: any;
-  tie: any;
+  neckwear: any;
   shoes: any;
   accessories: string[];
   justification: string;
-  imageQuery: string;
   seasonalNotes: string;
   styleNotes: string[];
   images: string[];

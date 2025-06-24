@@ -256,9 +256,23 @@ Full Preferences: ${JSON.stringify(preferences)}`;
   } catch (err) {
     console.error('Error in recommendation generation:', err);
     return {
-      suit: {}, shirt: {}, tie: {}, shoes: {}, accessories: [],
+      suit: {
+        color: '', style: '', fabric: '', pattern: '', fit: '', pieces: [], justification: ''
+      },
+      shirt: {
+        color: '', fabric: '', collar: '', cuffs: '', fit: '', justification: ''
+      },
+      neckwear: {
+        type: '', color: '', pattern: '', material: '', justification: ''
+      },
+      shoes: {
+        type: '', color: '', material: '', style: '', justification: ''
+      },
+      accessories: [],
       justification: 'Error generating recommendation',
-      seasonalNotes: '', styleNotes: [], images: [],
+      seasonalNotes: '',
+      styleNotes: [],
+      images: [],
       error: err.message || 'Unknown error'
     };
   }

@@ -174,9 +174,9 @@ const getShirtRecommendation = (prefs: UserPreferences, suit: any) => {
 
   if (prefs.formalityLevel === 'black-tie') {
     color = 'White';
-    style = 'Wing Collar';
+    collar = 'Wing';
   } else if (prefs.formalityLevel === 'business-casual') {
-    pattern = 'Subtle Pattern';
+    collar = 'Spread';
   }
 
   return { color, fabric, collar, cuffs, fit, justification };
