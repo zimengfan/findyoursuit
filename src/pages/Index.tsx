@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -32,6 +32,7 @@ const Index = () => {
   });
   const [recommendation, setRecommendation] = useState<any>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const mainContentRef = useRef<HTMLDivElement>(null);
 
   const totalSteps = 3;
   const progress = (currentStep / totalSteps) * 100;
@@ -96,7 +97,9 @@ const Index = () => {
   };
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (mainContentRef.current) {
+      mainContentRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   }, [currentStep]);
 
   if (currentStep === 4 && recommendation) {
@@ -122,7 +125,7 @@ const Index = () => {
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-12">
+      <div ref={mainContentRef} className="container mx-auto px-4 py-12">
         <div className="max-w-4xl mx-auto">
           {/* Progress Bar */}
           <div className="mb-8">
