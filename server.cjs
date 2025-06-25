@@ -33,13 +33,15 @@ app.use(bodyParser.json());
 
 app.post('/api/recommend', async (req, res) => {
   try {
-    console.log('Received request:', req.body);
+    console.log('[server.cjs] /api/recommend endpoint hit');
+    console.log('[server.cjs] Received request body:', req.body);
     const preferences = req.body;
+    console.log('[server.cjs] Calling getAIRecommendationWithImages...');
     const result = await getAIRecommendationWithImages(preferences);
-    console.log('Result:', result);
+    console.log('[server.cjs] Recommendation result:', result);
     res.json(result);
   } catch (err) {
-    console.error('Error in /api/recommend:', err);
+    console.error('[server.cjs] Error in /api/recommend:', err);
     res.status(500).json({ error: err.message || 'Internal server error' });
   }
 });

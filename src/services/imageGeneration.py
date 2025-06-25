@@ -17,9 +17,8 @@ def generate_outfit_views(base_prompt, size='576*1024', steps=4, guidance=7.5):
         list: List of URLs for the generated images [front, side, back] or empty list if failed
     """
     views = [
-        "front view, facing directly at the camera, showing the complete outfit from the front",
-        "side view, perfect 90-degree profile shot, showing the suit's silhouette from the side",
-        "back view, facing directly away from the camera, showing how the suit fits from behind"
+        "full body, including boots, facing directly at the camera, showing the complete outfit from head to toe",
+        "mid-thigh up, slightly tilted to the side, showing a more close-up details of the upper suit and accessories"
     ]
     
     try:
@@ -56,11 +55,11 @@ def generate_outfit_views(base_prompt, size='576*1024', steps=4, guidance=7.5):
             else:
                 print(f'Task failed: {final_response.code} - {final_response.message}')
 
-        # Only return results if we have all three views
-        if len(results) == 3:
+        # Only return results if we have both views
+        if len(results) == 2:
             return results
         else:
-            print(f"Error: Only generated {len(results)} out of 3 required views")
+            print(f"Error: Only generated {len(results)} out of 2 required views")
             return []
 
     except Exception as e:

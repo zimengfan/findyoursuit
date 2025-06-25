@@ -3,10 +3,11 @@ require('dotenv').config();
 const { validateOutfitRecommendation } = require('../lib/validateRecommendation.cjs');
 const { spawn } = require('child_process');
 
-function runImageGeneration(prompt) {
+function runImageGeneration(basePrompt) {
   return new Promise((resolve) => {
     try {
-      const pythonProcess = spawn('python', ['src/services/imageGeneration.py', prompt]);
+      console.log('[aiRecommendationService.cjs] runImageGeneration called with basePrompt:', basePrompt);
+      const pythonProcess = spawn('python', ['src/services/imageGeneration.py', basePrompt]);
       
       let result = '';
       let error = '';
@@ -24,29 +25,31 @@ function runImageGeneration(prompt) {
       pythonProcess.on('close', (code) => {
         if (code !== 0) {
           console.error('Python process error:', error);
-          resolve(null);
+          resolve([]);
         } else {
+          // Parse all image URLs from the output
+          const urls = [];
           const lines = result.split('\n');
           for (const line of lines) {
             const match = line.match(/\d+\. (https?:\/\/[^\s]+)/);
             if (match && match[1]) {
-              resolve(match[1].trim());
-              return;
+              urls.push(match[1].trim());
             }
           }
-          resolve(null);
+          resolve(urls);
         }
       });
 
     } catch (err) {
       console.error('Error in image generation child process:', err);
-      resolve(null);
+      resolve([]);
     }
   });
 }
 
 async function generateOutfitImage(recommendation, preferences) {
   try {
+    console.log('[aiRecommendationService.cjs] generateOutfitImage called');
     const skinToneDescription = getSkinToneDescription(preferences.skinTone);
     const occasionBackgrounds = {
       'wedding': 'elegant wedding venue background',
@@ -65,24 +68,38 @@ async function generateOutfitImage(recommendation, preferences) {
     }
     const background = occasionBackgrounds[occasionKey] || occasionBackgrounds['default'];
 
-    const characterDetails = `a ${skinToneDescription}, realistic, healthy, photogenic, and well-proportioned man (no extra limbs, no missing or deformed body parts, no distorted face), with short dark hair and a confident, natural pose. The person should have exactly the same facial features, hair style, height, and build in all three images.`;
-    const outfitDetails = `wearing a perfectly tailored ${recommendation.suit.color} ${recommendation.suit.fit} suit, ${recommendation.shirt.color} shirt with ${recommendation.shirt.collar} collar, ${recommendation.neckwear.color} ${recommendation.neckwear.type}, and polished ${recommendation.shoes.color} ${recommendation.shoes.style} shoes.`;
+    const characterDetails = `one single ${skinToneDescription}, realistic, healthy, photogenic, and well-proportioned man, with short dark hair and a confident, natural pose.`;
+    const layeringDetails = [];
+    if (recommendation.layering.outerwear) layeringDetails.push(recommendation.layering.outerwear);
+    if (recommendation.layering.vest) layeringDetails.push(recommendation.layering.vest);
+    if (recommendation.layering.pocket_square) layeringDetails.push(`pocket square: ${recommendation.layering.pocket_square}`);
+    const accessoriesDetails = Array.isArray(recommendation.accessories)
+      ? recommendation.accessories.map(acc => {
+          if (typeof acc === 'string') return acc;
+          if (acc && typeof acc === 'object') {
+            const parts = [];
+            if (acc.item || acc.name) parts.push(acc.item || acc.name);
+            if (acc.color) parts.push(acc.color);
+            if (acc.material) parts.push(acc.material);
+            if (acc.style) parts.push(acc.style);
+            if (acc.description) parts.push(acc.description);
+            return parts.join(', ');
+          }
+          return '';
+        }).filter(Boolean)
+      : [];
+    const fullLayering = layeringDetails.length > 0 ? `Layering: ${layeringDetails.join(', ')}.` : '';
+    const fullAccessories = accessoriesDetails.length > 0 ? `Accessories: ${accessoriesDetails.join('; ')}.` : '';
+    const outfitDetails = `wearing a perfectly tailored ${recommendation.suit.color} ${recommendation.suit.fit} suit, ${recommendation.shirt.color} shirt with ${recommendation.shirt.collar} collar, ${recommendation.neckwear.color} ${recommendation.neckwear.type}, and polished ${recommendation.shoes.color} ${recommendation.shoes.style} shoes. ${fullLayering} ${fullAccessories}`;
     const photographyDetails = `Professional, editorial-quality fashion photography with consistent studio lighting, clean background, and high-end style. ${background}`;
 
-    const prompts = [
-      `Generate a single, full-body photo, direct front view (facing the camera). ${characterDetails} ${outfitDetails} Capture all details of the outfit from the front. This image must be a true front view. ${photographyDetails}`,
-      `Generate a single, full-body photo, direct side view (facing 90 degrees to the right, profile). ${characterDetails} ${outfitDetails} Show the suit's silhouette and fit from the side profile. This image must be a true side view, not a 3/4 or partial angle. ${photographyDetails}`,
-      `Generate a single, full-body photo, direct back view (facing away from the camera). ${characterDetails} ${outfitDetails} Show how the suit fits and drapes from behind. This image must be a true back view. ${photographyDetails}`
-    ];
+    // Compose a base prompt for all three views
+    const basePrompt = `${characterDetails} ${outfitDetails} ${photographyDetails}`;
 
-    // Call the image generator three times in sequence
-    const images = [];
-    for (const prompt of prompts) {
-      const imageUrl = await runImageGeneration(prompt);
-      if (!imageUrl) {
-        throw new Error('Image generation failed for one of the views.');
-      }
-      images.push(imageUrl);
+    // Call the image generator ONCE, expecting two images
+    const images = await runImageGeneration(basePrompt);
+    if (!images || images.length !== 2) {
+      throw new Error('Image generation failed for one or more views.');
     }
     return images;
   } catch (err) {
@@ -103,6 +120,7 @@ function getSkinToneDescription(skinTone) {
 
 async function getAIRecommendationWithImages(preferences) {
   try {
+    console.log('[aiRecommendationService.cjs] getAIRecommendationWithImages called with preferences:', preferences);
     // Handle custom color preference
     let suitColor = '';
     if (preferences.colorPreference) {
@@ -112,27 +130,10 @@ async function getAIRecommendationWithImages(preferences) {
         suitColor = preferences.colorPreference;
       }
     }
-    const systemPrompt = `You are a world-class AI fashion stylist specializing in men's suits, renowned for your impeccable taste, creativity, and deep understanding of context. Your core mission is to generate a single, perfect, and complete suit-based outfit recommendation.
+    const systemPrompt = `You are an expert AI men's suit stylist. When users specify preferences, follow them exactly. For 'AI Pick' requests, design a bold, occasion-perfect outfit—formal events demand refined sophistication; creative events reward originality and fashion. Never default to clichés. Justify every choice implicitly through context.
 
-**Primary Directive:**
-- **If the user specifies preferences,** you must treat them as absolute constraints. Your creativity should only be used to perfect the details of the suit outfit within their choices.
-- **If the user chooses "AI Pick,"** you have full creative freedom. Your goal is to create a stunning, memorable, and perfectly occasion-appropriate suit ensemble. This is your chance to showcase your expertise.
-
-**Styling Philosophy for Formal & Business Occasions:**
-- **Principle:** For these events, a suit's style is about communicating respect, confidence, and professionalism. Creativity is expressed through mastery of the fundamentals, not flashiness.
-- **Execution:**
-  - **Color:** Choose colors that convey authority, trustworthiness, and sophistication.
-  - **Fabric & Pattern:** Select refined fabrics with subtle textures or patterns that enhance professionalism.
-  - **Neckwear:** Choose neckwear that complements without overpowering the ensemble.
-  - **Layering:** Consider additional pieces that enhance formality while maintaining harmony.
-
-**Styling Philosophy for Creative and Casual (relaxing/fun) Occasions:**
-- **Principle:** These events are opportunities for personal expression through suiting. Your recommendations should be stylish, contemporary, and memorable.
-- **Execution:**
-  - **Color:** Be bold and creative with color choices while maintaining sophistication and match the theme of the occasion.
-  - **Fabric & Pattern:** Express creativity through interesting textures and patterns.
-  - **Neckwear:** Choose a type of neckwear that match the theme and enhances the overall aesthetic.
-  - **Layering:** Use creative and appropriate layering to add personality to the ensemble.
+- If the user enters a custom color, the SUIT must be that color. All other elements must be chosen to complement and harmonize with that suit color. This is a high-priority rule.
+- Only include layering (vest, overcoat, pocket square, etc) if it is appropriate for the occasion or style. Do not add unnecessary layers. Always include all relevant accessories. The outfit should be described as a complete, styled ensemble, not just a suit and shirt.
 
 **Your Response MUST be a single, valid JSON object with NO missing fields. Do not include any commentary, markdown, or code fences. The structure is as follows:**
 {
@@ -144,8 +145,7 @@ async function getAIRecommendationWithImages(preferences) {
   "layering": { "outerwear": "", "vest": "", "pocket_square": "" },
   "justification": "",
   "styleNotes": []
-}
-`;
+}`;
 
     const userPrompt = `Occasion: ${preferences.occasion}
 Color Preferences: ${suitColor || 'Not specified'}
@@ -168,12 +168,6 @@ Full Preferences: ${JSON.stringify(preferences)}`;
     try {
       recommendation = JSON.parse(cleaned);
       
-      // Validate color preferences
-      if (suitColor && 
-          recommendation.suit.color.toLowerCase() !== suitColor.toLowerCase()) {
-        throw new Error(`AI recommendation ignored user's suit color preference. User wanted: ${suitColor}, AI suggested: ${recommendation.suit.color}`);
-      }
-
       // Validate occasion-appropriate formality
       if (!recommendation.suit.style || 
           !recommendation.neckwear || 
@@ -208,12 +202,13 @@ Full Preferences: ${JSON.stringify(preferences)}`;
     }
 
     // Generate AI images based on the recommendation
+    console.log('[aiRecommendationService.cjs] Calling generateOutfitImage...');
     const generatedImages = await generateOutfitImage(recommendation, preferences);
     const images = generatedImages.length > 0 ? generatedImages : [];
-
+    console.log('[aiRecommendationService.cjs] Images generated:', images);
     return { ...recommendation, images };
   } catch (err) {
-    console.error('Error in recommendation generation:', err);
+    console.error('[aiRecommendationService.cjs] Error in recommendation generation:', err);
     return {
       suit: {
         color: '', style: '', fabric: '', pattern: '', fit: '', pieces: [], justification: ''

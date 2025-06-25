@@ -56,10 +56,15 @@ const Recommendations = () => {
   const mainContentRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    console.log('[Recommendations] Current step changed:', currentStep);
+  }, [currentStep]);
+
   const totalSteps = 3;
   const progress = (currentStep / totalSteps) * 100;
 
   const handleNext = () => {
+    console.log('[Recommendations] handleNext called, currentStep:', currentStep);
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
     } else {
@@ -68,27 +73,36 @@ const Recommendations = () => {
   };
 
   const handleBack = () => {
+    console.log('[Recommendations] handleBack called, currentStep:', currentStep);
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
     }
   };
 
   const handleGenerateRecommendation = async () => {
+    console.log('[Recommendations] handleGenerateRecommendation called. isGenerating:', isGenerating);
     if (isGenerating) return; // Prevent double execution
     setIsGenerating(true);
+    console.log('[Recommendations] Generating recommendation with preferences:', preferences);
     try {
       const result = await getAIRecommendationWithImages(preferences);
+      console.log('[Recommendations] Recommendation result received:', result);
       setRecommendation(result);
       setCurrentStep(4); // Move to results
     } catch (error) {
-      console.error('Error generating recommendation:', error);
+      console.error('[Recommendations] Error generating recommendation:', error);
     } finally {
       setIsGenerating(false);
+      console.log('[Recommendations] isGenerating set to false');
     }
   };
 
   const updatePreferences = (updates: Partial<UserPreferences>) => {
-    setPreferences(prev => ({ ...prev, ...updates }));
+    setPreferences(prev => {
+      const newPrefs = { ...prev, ...updates };
+      console.log('[Recommendations] Preferences updated:', newPrefs);
+      return newPrefs;
+    });
   };
 
   const canProceed = () => {
@@ -105,6 +119,7 @@ const Recommendations = () => {
   };
 
   const resetForm = () => {
+    console.log('[Recommendations] Form reset');
     setCurrentStep(1);
     setPreferences(initialPreferences);
     setRecommendation(null);
@@ -196,7 +211,7 @@ const Recommendations = () => {
                 Previous
               </Button>
               <Button 
-                onClick={handleNext}
+                onClick={() => { console.log('[Recommendations] Generate button clicked'); handleNext(); }}
                 disabled={!canProceed() || isGenerating}
                 className="px-8 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
               >

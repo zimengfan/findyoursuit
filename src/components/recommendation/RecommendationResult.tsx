@@ -49,32 +49,34 @@ const RecommendationResult: React.FC<RecommendationResultProps> = ({
     onSelect();
   }, [emblaApi, onSelect]);
 
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [copied, setCopied] = useState(false);
+
   const handleShare = () => {
-    if (navigator.share) {
+    if (navigator.share && images.length > 0) {
       navigator.share({
         title: 'My SuitCraft AI Recommendation',
         text: recommendation.justification,
-        url: window.location.href,
+        url: images[0],
       });
     } else {
-      // Fallback for browsers that don't support Web Share API
-      navigator.clipboard.writeText(
-        `My SuitCraft AI Recommendation:\n\n${recommendation.justification}\n\nCheck out SuitCraft AI for your perfect suit!`
-      );
-      alert('Recommendation copied to clipboard!');
+      setShowShareModal(true);
     }
   };
 
-  const handleSave = () => {
-    const dataStr = JSON.stringify(recommendation, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-    
-    const exportFileDefaultName = 'my-suit-recommendation.json';
-    
-    const linkElement = document.createElement('a');
-    linkElement.setAttribute('href', dataUri);
-    linkElement.setAttribute('download', exportFileDefaultName);
-    linkElement.click();
+  const handleSave = async () => {
+    if (images.length === 0) return;
+    for (let i = 0; i < images.length; i++) {
+      const url = images[i];
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `suitcraft-image-${i + 1}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   };
 
   useEffect(() => {
@@ -257,11 +259,30 @@ const RecommendationResult: React.FC<RecommendationResultProps> = ({
                   <div>
                     <span className="font-semibold text-slate-700 block mb-2">Accessories:</span>
                     <div className="flex flex-wrap gap-2">
-                      {accessories.map((accessory, index) => (
-                        <Badge key={index} variant="outline" className="text-xs">
-                          {accessory}
-                        </Badge>
-                      ))}
+                      {accessories.map((accessory, index) => {
+                        if (typeof accessory === 'string') {
+                          return (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              {accessory}
+                            </Badge>
+                          );
+                        } else if (accessory && typeof accessory === 'object') {
+                          // Build a readable string from object fields
+                          const parts = [];
+                          if (accessory.item || accessory.name) parts.push(accessory.item || accessory.name);
+                          if (accessory.color) parts.push(accessory.color);
+                          if (accessory.material) parts.push(accessory.material);
+                          if (accessory.style) parts.push(accessory.style);
+                          // Add any other fields as needed
+                          return (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              {parts.join(', ')}
+                            </Badge>
+                          );
+                        } else {
+                          return null;
+                        }
+                      })}
                     </div>
                   </div>
                 </div>
@@ -290,6 +311,29 @@ const RecommendationResult: React.FC<RecommendationResultProps> = ({
           </div>
         </div>
       </div>
+
+      {showShareModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg p-6 max-w-sm w-full shadow-xl relative">
+            <button className="absolute top-2 right-2 text-slate-500" onClick={() => setShowShareModal(false)}>&times;</button>
+            <h3 className="text-lg font-bold mb-2">Share this look</h3>
+            {images[0] && (
+              <img src={images[0]} alt="Preview" className="w-full rounded mb-3" />
+            )}
+            <div className="flex flex-col gap-2 mb-2">
+              <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(images[0] || window.location.href)}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Share on Facebook</a>
+              <a href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(images[0] || window.location.href)}&text=Check+out+my+SuitCraft+AI+look!`} target="_blank" rel="noopener noreferrer" className="text-blue-400 underline">Share on Twitter</a>
+              <a href={`https://wa.me/?text=${encodeURIComponent('Check out my SuitCraft AI look! ' + (images[0] || window.location.href))}`} target="_blank" rel="noopener noreferrer" className="text-green-600 underline">Share on WhatsApp</a>
+            </div>
+            <div className="flex items-center gap-2">
+              <input type="text" value={images[0] || ''} readOnly className="flex-1 border px-2 py-1 rounded text-xs" />
+              <Button size="sm" onClick={() => {navigator.clipboard.writeText(images[0] || ''); setCopied(true); setTimeout(()=>setCopied(false), 1500);}}>
+                {copied ? 'Copied!' : 'Copy Link'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

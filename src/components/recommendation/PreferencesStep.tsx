@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import type { UserPreferences } from '@/pages/Recommendations';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -12,7 +12,14 @@ interface PreferencesStepProps {
 }
 
 const PreferencesStep: React.FC<PreferencesStepProps> = ({ preferences, updatePreferences }) => {
-  const [customColor, setCustomColor] = useState(preferences.colorPreference.startsWith('custom:') ? preferences.colorPreference.replace('custom:', '') : '');
+  const customInputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-focus the input when custom color is selected
+  useEffect(() => {
+    if (preferences.colorPreference.startsWith('custom:') && customInputRef.current) {
+      customInputRef.current.focus();
+    }
+  }, [preferences.colorPreference]);
 
   const colorPreferences = [
     { id: 'ai-pick', label: 'Let AI Pick for You', icon: true, description: 'Our AI will choose the perfect colors based on your occasion and preferences' },
@@ -54,7 +61,9 @@ const PreferencesStep: React.FC<PreferencesStepProps> = ({ preferences, updatePr
             onClick={e => {
               if (option.id === 'custom' && (e.target as HTMLElement).tagName === 'INPUT') return;
               if (option.id === 'custom') {
-                onSelect('custom:' + customColor);
+                if (!selectedValue.startsWith('custom:')) {
+                  onSelect('custom:');
+                }
               } else {
                 onSelect(option.id);
               }
@@ -88,11 +97,11 @@ const PreferencesStep: React.FC<PreferencesStepProps> = ({ preferences, updatePr
             {option.id === 'custom' && (selectedValue.startsWith('custom:') || selectedValue === 'custom') && (
               <div className="mt-4">
                 <Input
+                  ref={customInputRef}
                   type="text"
                   placeholder="Enter your preferred color (e.g. Emerald Green, Sky Blue)"
-                  value={customColor}
+                  value={selectedValue.startsWith('custom:') ? selectedValue.replace('custom:', '') : ''}
                   onChange={e => {
-                    setCustomColor(e.target.value);
                     onSelect('custom:' + e.target.value);
                   }}
                   className="w-full"
