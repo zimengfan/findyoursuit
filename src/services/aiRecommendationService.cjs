@@ -26,15 +26,16 @@ function runImageGeneration(prompt) {
           console.error('Python process error:', error);
           resolve(null);
         } else {
+          // Parse all image URLs from the output
+          const urls = [];
           const lines = result.split('\n');
           for (const line of lines) {
             const match = line.match(/\d+\. (https?:\/\/[^\s]+)/);
             if (match && match[1]) {
-              resolve(match[1].trim());
-              return;
+              urls.push(match[1].trim());
             }
           }
-          resolve(null);
+          resolve(urls);
         }
       });
 
@@ -69,22 +70,13 @@ async function generateOutfitImage(recommendation, preferences) {
     const outfitDetails = `wearing a perfectly tailored ${recommendation.suit.color} ${recommendation.suit.fit} suit, ${recommendation.shirt.color} shirt with ${recommendation.shirt.collar} collar, ${recommendation.neckwear.color} ${recommendation.neckwear.type}, and polished ${recommendation.shoes.color} ${recommendation.shoes.style} shoes.`;
     const photographyDetails = `Professional, editorial-quality fashion photography with consistent studio lighting, clean background, and high-end style. ${background}`;
 
-    const prompts = [
-      `Generate a single, full-body photo, direct front view (facing the camera). ${characterDetails} ${outfitDetails} Capture all details of the outfit from the front. This image must be a true front view. ${photographyDetails}`,
-      `Generate a single, full-body photo, direct side view (facing 90 degrees to the right, profile). ${characterDetails} ${outfitDetails} Show the suit's silhouette and fit from the side profile. This image must be a true side view, not a 3/4 or partial angle. ${photographyDetails}`,
-      `Generate a single, full-body photo, direct back view (facing away from the camera). ${characterDetails} ${outfitDetails} Show how the suit fits and drapes from behind. This image must be a true back view. ${photographyDetails}`
-    ];
-
-    // Call the image generator three times in sequence
-    const images = [];
-    for (const prompt of prompts) {
-      const imageUrl = await runImageGeneration(prompt);
-      if (!imageUrl) {
-        throw new Error('Image generation failed for one of the views.');
-      }
-      images.push(imageUrl);
+    // Compose a single base prompt for all three views
+    const basePrompt = `${characterDetails} ${outfitDetails} ${photographyDetails}`;
+    const imageUrls = await runImageGeneration(basePrompt);
+    if (!Array.isArray(imageUrls) || imageUrls.length !== 3) {
+      throw new Error('Image generation did not return three images.');
     }
-    return images;
+    return imageUrls;
   } catch (err) {
     console.error('Error in generating outfit images:', err);
     return [];
@@ -118,19 +110,19 @@ async function getAIRecommendationWithImages(preferences) {
 - **If the user specifies preferences,** you must treat them as absolute constraints. Your creativity should only be used to perfect the details of the suit outfit within their choices.
 - **If the user chooses "AI Pick,"** you have full creative freedom. Your goal is to create a stunning, memorable, and perfectly occasion-appropriate suit ensemble. This is your chance to showcase your expertise.
 
-**Styling Philosophy for Formal & Business Occasions (e.g., Business, Interview, Funeral):**
+**Styling Philosophy for Formal & Business Occasions:**
 - **Principle:** For these events, a suit's style is about communicating respect, confidence, and professionalism. Creativity is expressed through mastery of the fundamentals, not flashiness.
 - **Execution:**
-  - **Color:** Build the suit upon a foundation of classic, powerful colors (navy, charcoal, black). A deep midnight blue or a rich charcoal with a subtle texture can be more sophisticated than a simple solid.
+  - **Color:** Build the suit upon a foundation of classic, powerful colors. A deep midnight blue or a rich charcoal with a subtle texture can be more sophisticated than a simple solid.
   - **Fabric & Pattern:** Think luxurious wools for the suit, with a subtle herringbone or a faint pinstripe. The texture of the fabric should speak for itself.
   - **Neckwear:** A high-quality silk necktie is the cornerstone of a professional suit look. The color and pattern should complement the suit and shirt, not compete with them. Bow ties are generally reserved for creative or black-tie events.
   - **Layering:** A perfectly fitted waistcoat can elevate a suit, but it should be harmonious with the rest of the ensemble.
 
-**Styling Philosophy for Creative Occasions (e.g., Wedding, Cocktail, Date):**
+**Styling Philosophy for Creative and Casual (relaxing/fun) Occasions:**
 - **Principle:** These events are opportunities for personal expression through suiting. Your recommendations should be stylish, contemporary, and memorable.
 - **Execution:**
-  - **Color:** Be bold and creative with the suit color. Explore a wide palette: forest greens, deep burgundies, rich teals, tobacco browns, and even tasteful pastels, depending on the context. Avoid falling into a rut of using the same colors repeatedly.
-  - **Fabric & Pattern:** This is where the suit can truly shine. Mix textures and patterns with confidence—a tweed suit, a glen check pattern, or a linen blend for warmer weather.
+  - **Color:** Be bold and creative with the suit color depending on the context
+  - **Fabric & Pattern:** This is where the suit can truly shine. Mix textures and patterns with confidence.
   - **Neckwear:** You have full freedom here. A classic tie, a stylish bow tie, a sophisticated ascot, a casual neckerchief, or even a tastefully open collar can complete the suit outfit. The choice should serve the overall aesthetic.
   - **Layering:** Be imaginative. A contrasting vest, a stylish cardigan, or a statement overcoat can complete the suit look.
 
@@ -208,7 +200,17 @@ Full Preferences: ${JSON.stringify(preferences)}`;
     }
 
     // Generate AI images based on the recommendation
-    const generatedImages = await generateOutfitImage(recommendation, preferences);
+    let generatedImages = await generateOutfitImage(recommendation, preferences);
+    if (Array.isArray(generatedImages)) {
+      if (generatedImages.length > 3) {
+        console.warn('More than 3 images generated, slicing to 3:', generatedImages);
+        generatedImages = generatedImages.slice(0, 3);
+      }
+      console.log('Images returned from generateOutfitImage:', generatedImages);
+    } else {
+      console.warn('generateOutfitImage did not return an array:', generatedImages);
+      generatedImages = [];
+    }
     const images = generatedImages.length > 0 ? generatedImages : [];
 
     return { ...recommendation, images };
