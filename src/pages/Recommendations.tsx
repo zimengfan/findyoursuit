@@ -76,6 +76,7 @@ const Recommendations = () => {
   };
 
   const handleGenerateRecommendation = async () => {
+    if (isGenerating) return; // Prevent double execution
     setIsGenerating(true);
     try {
       const result = await getAIRecommendationWithImages(preferences);
@@ -198,7 +199,7 @@ const Recommendations = () => {
               </Button>
               <Button 
                 onClick={handleNext}
-                disabled={!canProceed()}
+                disabled={!canProceed() || isGenerating}
                 className="px-8 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
               >
                 {currentStep === totalSteps ? 'Generate Recommendation' : 'Next'}
