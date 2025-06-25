@@ -169,32 +169,6 @@ Full Preferences: ${JSON.stringify(preferences)}`;
         throw new Error(`AI recommendation ignored user's suit color preference. User wanted: ${suitColor}, AI suggested: ${recommendation.suit.color}`);
       }
 
-      // Track color diversity and appropriateness
-      const standardColors = ['navy', 'charcoal', 'black'];
-      const formalOccasions = ['funeral', 'interview', 'business'];
-      const isStandardColor = standardColors.some(color => 
-        recommendation.suit.color.toLowerCase().includes(color)
-      );
-
-      // Only validate conservativeness for formal occasions when not AI pick
-      if (preferences.colorPreference !== 'ai-pick' && 
-          formalOccasions.includes(preferences.occasion)) {
-        // For user-specified preferences in formal occasions, ensure appropriateness
-        if (!isStandardColor && !suitColor) {
-          console.log('Ensuring formal occasion color appropriateness for user-specified preferences');
-          throw new Error('Please suggest a more conservative color choice for this formal occasion');
-        }
-      }
-
-      // For AI pick, encourage creativity in casual occasions
-      if (preferences.colorPreference === 'ai-pick' && 
-          !formalOccasions.includes(preferences.occasion) && 
-          isStandardColor && 
-          Math.random() > 0.2) { // Only allow standard colors 20% of the time for casual occasions
-        console.log('Encouraging more creative color selection for casual occasion');
-        throw new Error('Please suggest a more creative color combination for this casual occasion');
-      }
-
       // Validate occasion-appropriate formality
       if (!recommendation.suit.style || 
           !recommendation.neckwear || 
