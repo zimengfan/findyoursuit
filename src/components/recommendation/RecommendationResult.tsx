@@ -9,11 +9,13 @@ import useEmblaCarousel from 'embla-carousel-react';
 interface RecommendationResultProps {
   recommendation: any;
   onReset: () => void;
+  onReturnHome?: () => void;
 }
 
 const RecommendationResult: React.FC<RecommendationResultProps> = ({ 
   recommendation, 
-  onReset 
+  onReset,
+  onReturnHome
 }) => {
   if (!recommendation || typeof recommendation !== 'object') {
     return <div>Invalid recommendation data.</div>;
@@ -86,7 +88,7 @@ const RecommendationResult: React.FC<RecommendationResultProps> = ({
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       {/* Header */}
-      <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 text-white py-8">
+      <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900 text-white py-8 relative">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
@@ -101,6 +103,15 @@ const RecommendationResult: React.FC<RecommendationResultProps> = ({
               <ArrowLeft className="h-4 w-4 mr-2" />
               New Recommendation
             </Button>
+            {onReturnHome && (
+              <Button
+                className="absolute top-4 right-4 bg-white/90 border border-slate-200 rounded-lg px-4 py-2 text-blue-700 font-semibold shadow hover:bg-blue-50 transition z-50"
+                onClick={onReturnHome}
+                aria-label="Return to Home"
+              >
+                ← Return to Home
+              </Button>
+            )}
           </div>
         </div>
       </div>
