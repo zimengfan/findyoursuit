@@ -3,12 +3,11 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { OutfitRecommendation } from '@/services/recommendationService';
 import { Share, Save, Sparkles, Shirt, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import useEmblaCarousel from 'embla-carousel-react';
 
 interface RecommendationResultProps {
-  recommendation: OutfitRecommendation;
+  recommendation: any;
   onReset: () => void;
 }
 
@@ -16,6 +15,19 @@ const RecommendationResult: React.FC<RecommendationResultProps> = ({
   recommendation, 
   onReset 
 }) => {
+  if (!recommendation || typeof recommendation !== 'object') {
+    return <div>Invalid recommendation data.</div>;
+  }
+
+  const suit = recommendation.suit || {};
+  const shirt = recommendation.shirt || {};
+  const neckwear = recommendation.neckwear || {};
+  const shoes = recommendation.shoes || {};
+  const layering = recommendation.layering || {};
+  const accessories = Array.isArray(recommendation.accessories) ? recommendation.accessories : [];
+  const styleNotes = Array.isArray(recommendation.styleNotes) ? recommendation.styleNotes : [];
+  const images = Array.isArray(recommendation.images) ? recommendation.images : [];
+
   const [imageError, setImageError] = useState(false);
   
   // Mock image URL - in a real app, this would come from an image generation API
@@ -24,7 +36,6 @@ const RecommendationResult: React.FC<RecommendationResultProps> = ({
   // Embla carousel setup
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const images = recommendation.images && recommendation.images.length > 0 ? recommendation.images : [];
 
   const scrollPrev = useCallback(() => emblaApi && emblaApi.scrollPrev(), [emblaApi]);
   const scrollNext = useCallback(() => emblaApi && emblaApi.scrollNext(), [emblaApi]);
@@ -146,16 +157,16 @@ const RecommendationResult: React.FC<RecommendationResultProps> = ({
                   <div className="text-center">
                     <Shirt className="h-24 w-24 mx-auto text-slate-400 mb-4" />
                     <h3 className="text-lg font-semibold text-slate-600 mb-2">
-                      {recommendation.suit.color} {recommendation.suit.style} {recommendation.suit.fit} Suit
+                      {suit.color} {suit.style} {suit.fit} Suit
                     </h3>
                     <p className="text-slate-500">
-                      {recommendation.shirt.color} {recommendation.shirt.collar} Shirt
+                      {shirt.color} {shirt.collar} Shirt
                     </p>
                     <p className="text-slate-500">
-                      {recommendation.neckwear.color} {recommendation.neckwear.type}
+                      {neckwear.color} {neckwear.type}
                     </p>
                     <p className="text-slate-500">
-                      {recommendation.shoes.color} {recommendation.shoes.style}
+                      {shoes.color} {shoes.style}
                     </p>
                   </div>
                 )}
@@ -183,13 +194,13 @@ const RecommendationResult: React.FC<RecommendationResultProps> = ({
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-slate-700">Suit:</span>
                     <Badge variant="secondary" className="text-sm">
-                      {recommendation.suit.color} {recommendation.suit.style} {recommendation.suit.fit}
+                      {suit.color} {suit.style} {suit.fit}
                     </Badge>
                   </div>
                   
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-slate-700">Fabric:</span>
-                    <span className="text-slate-600">{recommendation.suit.fabric}</span>
+                    <span className="text-slate-600">{suit.fabric}</span>
                   </div>
                   
                   <Separator />
@@ -197,44 +208,44 @@ const RecommendationResult: React.FC<RecommendationResultProps> = ({
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-slate-700">Shirt:</span>
                     <Badge variant="secondary" className="text-sm">
-                      {recommendation.shirt.color} {recommendation.shirt.collar}
+                      {shirt.color} {shirt.collar}
                     </Badge>
                   </div>
                   
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-slate-700">Neckwear:</span>
                     <Badge variant="secondary" className="text-sm">
-                      {recommendation.neckwear.color} {recommendation.neckwear.type}
+                      {neckwear.color} {neckwear.type}
                     </Badge>
                   </div>
                   
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-slate-700">Shoes:</span>
                     <Badge variant="secondary" className="text-sm">
-                      {recommendation.shoes.color} {recommendation.shoes.style}
+                      {shoes.color} {shoes.style}
                     </Badge>
                   </div>
                   
                   <Separator />
                   
-                  {recommendation.layering && (
+                  {layering && (
                     <>
                       <div>
                         <span className="font-semibold text-slate-700 block mb-2">Layering:</span>
                         <div className="flex flex-wrap gap-2">
-                          {recommendation.layering.outerwear && (
+                          {layering.outerwear && (
                             <Badge variant="outline" className="text-xs">
-                              {recommendation.layering.outerwear}
+                              {layering.outerwear}
                             </Badge>
                           )}
-                          {recommendation.layering.vest && (
+                          {layering.vest && (
                             <Badge variant="outline" className="text-xs">
-                              {recommendation.layering.vest}
+                              {layering.vest}
                             </Badge>
                           )}
-                          {recommendation.layering.pocket_square && (
+                          {layering.pocket_square && (
                             <Badge variant="outline" className="text-xs">
-                              Pocket Square: {recommendation.layering.pocket_square}
+                              Pocket Square: {layering.pocket_square}
                             </Badge>
                           )}
                         </div>
@@ -246,7 +257,7 @@ const RecommendationResult: React.FC<RecommendationResultProps> = ({
                   <div>
                     <span className="font-semibold text-slate-700 block mb-2">Accessories:</span>
                     <div className="flex flex-wrap gap-2">
-                      {recommendation.accessories.map((accessory, index) => (
+                      {accessories.map((accessory, index) => (
                         <Badge key={index} variant="outline" className="text-xs">
                           {accessory}
                         </Badge>
@@ -269,7 +280,7 @@ const RecommendationResult: React.FC<RecommendationResultProps> = ({
                 <div>
                   <h3 className="font-semibold text-slate-800">Style Notes</h3>
                   <ul className="list-disc list-inside text-slate-600 text-sm space-y-1 mt-2">
-                    {recommendation.styleNotes.map((note: string, idx: number) => (
+                    {styleNotes.map((note: string, idx: number) => (
                       <li key={idx}>{note}</li>
                     ))}
                   </ul>
