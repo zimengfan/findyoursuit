@@ -15,7 +15,6 @@ export interface UserPreferences {
   colorPreference: string;
   bodyType: string;
   skinTone: string;
-  age: string;
 }
 
 const initialPreferences: UserPreferences = {
@@ -23,7 +22,6 @@ const initialPreferences: UserPreferences = {
   colorPreference: '',
   bodyType: '',
   skinTone: '',
-  age: '',
 };
 
 // Custom smooth scroll function

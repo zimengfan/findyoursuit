@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { UserPreferences } from '@/pages/Index';
+import { UserPreferences } from '@/pages/Recommendations';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
