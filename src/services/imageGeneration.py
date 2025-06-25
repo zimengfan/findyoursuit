@@ -33,7 +33,7 @@ def generate_outfit_views(base_prompt, size='576*1024', steps=4, guidance=7.5):
             print(f"Generating {view_prompt.strip()} image...")
             
             response = ImageSynthesis.async_call(
-                model="flux-schnell",
+                model="wanx2.1-t2i-plus",
                 prompt=full_prompt,
                 size=size,
                 steps=steps,
