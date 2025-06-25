@@ -26,16 +26,15 @@ function runImageGeneration(prompt) {
           console.error('Python process error:', error);
           resolve(null);
         } else {
-          // Parse all image URLs from the output
-          const urls = [];
           const lines = result.split('\n');
           for (const line of lines) {
             const match = line.match(/\d+\. (https?:\/\/[^\s]+)/);
             if (match && match[1]) {
-              urls.push(match[1].trim());
+              resolve(match[1].trim());
+              return;
             }
           }
-          resolve(urls);
+          resolve(null);
         }
       });
 
@@ -66,17 +65,26 @@ async function generateOutfitImage(recommendation, preferences) {
     }
     const background = occasionBackgrounds[occasionKey] || occasionBackgrounds['default'];
 
-    const characterDetails = `a realistic, healthy, photogenic, and well-proportioned man (no extra limbs, no missing or deformed body parts, no distorted face), with short dark hair, ${skinToneDescription} skin, and a confident, natural pose. The person should have exactly the same facial features, hair style, height, and build in all three images.`;
+    const characterDetails = `a ${skinToneDescription}, realistic, healthy, photogenic, and well-proportioned man (no extra limbs, no missing or deformed body parts, no distorted face), with short dark hair and a confident, natural pose. The person should have exactly the same facial features, hair style, height, and build in all three images.`;
     const outfitDetails = `wearing a perfectly tailored ${recommendation.suit.color} ${recommendation.suit.fit} suit, ${recommendation.shirt.color} shirt with ${recommendation.shirt.collar} collar, ${recommendation.neckwear.color} ${recommendation.neckwear.type}, and polished ${recommendation.shoes.color} ${recommendation.shoes.style} shoes.`;
     const photographyDetails = `Professional, editorial-quality fashion photography with consistent studio lighting, clean background, and high-end style. ${background}`;
 
-    // Compose a single base prompt for all three views
-    const basePrompt = `${characterDetails} ${outfitDetails} ${photographyDetails}`;
-    const imageUrls = await runImageGeneration(basePrompt);
-    if (!Array.isArray(imageUrls) || imageUrls.length !== 3) {
-      throw new Error('Image generation did not return three images.');
+    const prompts = [
+      `Generate a single, full-body photo, direct front view (facing the camera). ${characterDetails} ${outfitDetails} Capture all details of the outfit from the front. This image must be a true front view. ${photographyDetails}`,
+      `Generate a single, full-body photo, direct side view (facing 90 degrees to the right, profile). ${characterDetails} ${outfitDetails} Show the suit's silhouette and fit from the side profile. This image must be a true side view, not a 3/4 or partial angle. ${photographyDetails}`,
+      `Generate a single, full-body photo, direct back view (facing away from the camera). ${characterDetails} ${outfitDetails} Show how the suit fits and drapes from behind. This image must be a true back view. ${photographyDetails}`
+    ];
+
+    // Call the image generator three times in sequence
+    const images = [];
+    for (const prompt of prompts) {
+      const imageUrl = await runImageGeneration(prompt);
+      if (!imageUrl) {
+        throw new Error('Image generation failed for one of the views.');
+      }
+      images.push(imageUrl);
     }
-    return imageUrls;
+    return images;
   } catch (err) {
     console.error('Error in generating outfit images:', err);
     return [];
@@ -85,12 +93,12 @@ async function generateOutfitImage(recommendation, preferences) {
 
 function getSkinToneDescription(skinTone) {
   const skinToneMap = {
-    'fair': 'fair-skinned',
-    'medium': 'lightly tanned skin (not brown, more of a healthy beige)',
-    'olive': 'light brown skin with warm undertones',
-    'dark': 'dark-skinned'
+    'fair': 'person with fair/light skin tone, pale complexion, Caucasian features',
+    'medium': 'person with medium skin tone, warm beige complexion, Mediterranean features',
+    'olive': 'person with olive/tan skin tone, golden-brown complexion, Mediterranean/Middle Eastern features',
+    'dark': 'person with dark/deep brown skin tone, rich ebony complexion, African features'
   };
-  return skinToneMap[skinTone] || 'medium-skinned'; // default to medium if not specified
+  return skinToneMap[skinTone] || 'person with medium skin tone'; // default to medium if not specified
 }
 
 async function getAIRecommendationWithImages(preferences) {
@@ -113,18 +121,18 @@ async function getAIRecommendationWithImages(preferences) {
 **Styling Philosophy for Formal & Business Occasions:**
 - **Principle:** For these events, a suit's style is about communicating respect, confidence, and professionalism. Creativity is expressed through mastery of the fundamentals, not flashiness.
 - **Execution:**
-  - **Color:** Build the suit upon a foundation of classic, powerful colors. A deep midnight blue or a rich charcoal with a subtle texture can be more sophisticated than a simple solid.
-  - **Fabric & Pattern:** Think luxurious wools for the suit, with a subtle herringbone or a faint pinstripe. The texture of the fabric should speak for itself.
-  - **Neckwear:** A high-quality silk necktie is the cornerstone of a professional suit look. The color and pattern should complement the suit and shirt, not compete with them. Bow ties are generally reserved for creative or black-tie events.
-  - **Layering:** A perfectly fitted waistcoat can elevate a suit, but it should be harmonious with the rest of the ensemble.
+  - **Color:** Choose colors that convey authority, trustworthiness, and sophistication.
+  - **Fabric & Pattern:** Select refined fabrics with subtle textures or patterns that enhance professionalism.
+  - **Neckwear:** Choose neckwear that complements without overpowering the ensemble.
+  - **Layering:** Consider additional pieces that enhance formality while maintaining harmony.
 
 **Styling Philosophy for Creative and Casual (relaxing/fun) Occasions:**
 - **Principle:** These events are opportunities for personal expression through suiting. Your recommendations should be stylish, contemporary, and memorable.
 - **Execution:**
-  - **Color:** Be bold and creative with the suit color depending on the context
-  - **Fabric & Pattern:** This is where the suit can truly shine. Mix textures and patterns with confidence.
-  - **Neckwear:** You have full freedom here. A classic tie, a stylish bow tie, a sophisticated ascot, a casual neckerchief, or even a tastefully open collar can complete the suit outfit. The choice should serve the overall aesthetic.
-  - **Layering:** Be imaginative. A contrasting vest, a stylish cardigan, or a statement overcoat can complete the suit look.
+  - **Color:** Be bold and creative with color choices while maintaining sophistication and match the theme of the occasion.
+  - **Fabric & Pattern:** Express creativity through interesting textures and patterns.
+  - **Neckwear:** Choose a type of neckwear that match the theme and enhances the overall aesthetic.
+  - **Layering:** Use creative and appropriate layering to add personality to the ensemble.
 
 **Your Response MUST be a single, valid JSON object with NO missing fields. Do not include any commentary, markdown, or code fences. The structure is as follows:**
 {
@@ -200,17 +208,7 @@ Full Preferences: ${JSON.stringify(preferences)}`;
     }
 
     // Generate AI images based on the recommendation
-    let generatedImages = await generateOutfitImage(recommendation, preferences);
-    if (Array.isArray(generatedImages)) {
-      if (generatedImages.length > 3) {
-        console.warn('More than 3 images generated, slicing to 3:', generatedImages);
-        generatedImages = generatedImages.slice(0, 3);
-      }
-      console.log('Images returned from generateOutfitImage:', generatedImages);
-    } else {
-      console.warn('generateOutfitImage did not return an array:', generatedImages);
-      generatedImages = [];
-    }
+    const generatedImages = await generateOutfitImage(recommendation, preferences);
     const images = generatedImages.length > 0 ? generatedImages : [];
 
     return { ...recommendation, images };

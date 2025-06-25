@@ -29,4 +29,14 @@ export async function getAIRecommendationWithImages(preferences: any): Promise<a
     throw new Error('Failed to fetch recommendation');
   }
   return await response.json();
+}
+
+function getSkinToneDescription(skinTone) {
+  const skinToneMap = {
+    'fair': 'person with fair/light skin tone, pale complexion',
+    'medium': 'person with medium skin tone, warm beige complexion',
+    'olive': 'person with olive/tan skin tone, Mediterranean complexion',
+    'dark': 'person with dark/deep brown skin tone, rich ebony complexion'
+  };
+  return skinToneMap[skinTone] || 'person with medium skin tone'; // default to medium if not specified
 } 
