@@ -74,12 +74,17 @@ async function generateOutfitImage(recommendation, preferences) {
       `Generate a single, full-body photo, direct side view (facing 90 degrees to the right, profile). ${characterDetails} ${outfitDetails} Show the suit's silhouette and fit from the side profile. This image must be a true side view, not a 3/4 or partial angle. ${photographyDetails}`,
       `Generate a single, full-body photo, direct back view (facing away from the camera). ${characterDetails} ${outfitDetails} Show how the suit fits and drapes from behind. This image must be a true back view. ${photographyDetails}`
     ];
-    
-    const imagePromises = prompts.map(prompt => runImageGeneration(prompt));
-    const imageUrls = await Promise.all(imagePromises);
-    
-    return imageUrls.filter(url => url);
 
+    // Call the image generator three times in sequence
+    const images = [];
+    for (const prompt of prompts) {
+      const imageUrl = await runImageGeneration(prompt);
+      if (!imageUrl) {
+        throw new Error('Image generation failed for one of the views.');
+      }
+      images.push(imageUrl);
+    }
+    return images;
   } catch (err) {
     console.error('Error in generating outfit images:', err);
     return [];
