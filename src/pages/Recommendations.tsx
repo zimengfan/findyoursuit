@@ -8,7 +8,7 @@ import PersonalInfoStep from '@/components/recommendation/PersonalInfoStep';
 import RecommendationResult from '@/components/recommendation/RecommendationResult';
 import { getAIRecommendationWithImages } from '@/services/aiRecommendationService';
 import { Sparkles, Shirt } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { updateUserExcel } from '@/lib/utils';
 import { useAuth, getUsers } from '@/contexts/AuthContext';
 
@@ -58,8 +58,12 @@ const Recommendations = () => {
   const mainContentRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const [fadeOut, setFadeOut] = useState(false);
-  const { user, incrementUsage } = useAuth();
+  const { user, incrementUsage, canUseService } = useAuth();
   const [showHomeConfirm, setShowHomeConfirm] = useState(false);
+  const [showOutOfCredits, setShowOutOfCredits] = useState(false);
+  const [guestTrialUsed, setGuestTrialUsed] = useState(() => {
+    return localStorage.getItem('suitcraft_trial_used') === 'true';
+  });
 
   useEffect(() => {
     console.log('[Recommendations] Current step changed:', currentStep);
@@ -85,7 +89,19 @@ const Recommendations = () => {
   };
 
   const handleGenerateRecommendation = async () => {
-    console.log('[Recommendations] handleGenerateRecommendation called. isGenerating:', isGenerating);
+    if (user) {
+      if (!canUseService()) {
+        setShowOutOfCredits(true);
+        return;
+      }
+    } else {
+      if (guestTrialUsed) {
+        setShowOutOfCredits(true);
+        return;
+      }
+      localStorage.setItem('suitcraft_trial_used', 'true');
+      setGuestTrialUsed(true);
+    }
     if (isGenerating) return; // Prevent double execution
     setIsGenerating(true);
     console.log('[Recommendations] Generating recommendation with preferences:', preferences);
@@ -94,16 +110,8 @@ const Recommendations = () => {
       console.log('[Recommendations] Recommendation result received:', result);
       setRecommendation(result);
       setCurrentStep(4); // Move to results
-      // Only increment usage and write to Excel after success
       if (user) {
         await incrementUsage();
-        updateUserExcel({
-          email: user.email,
-          password: getUsers()[user.id]?.password || '',
-          plan: user.subscription_tier,
-          monthlyUsage: user.monthly_usage + 1, // incremented
-          analytics: `Last occasion: ${preferences.occasion}`
-        });
       }
     } catch (error) {
       console.error('[Recommendations] Error generating recommendation:', error);
@@ -170,6 +178,19 @@ const Recommendations = () => {
             <div className="flex gap-4">
               <Button className="flex-1" onClick={() => setShowHomeConfirm(false)}>Cancel</Button>
               <Button className="flex-1 bg-blue-600 hover:bg-blue-700" onClick={() => { setFadeOut(true); setShowHomeConfirm(false); setTimeout(() => navigate('/'), 400); }}>Yes, Return Home</Button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Out of Credits Modal */}
+      {showOutOfCredits && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md text-center">
+            <h2 className="text-2xl font-bold mb-4">Watch an Ad to Continue</h2>
+            <p className="mb-6">You've used your free recommendations. To generate another, please watch a short ad.</p>
+            <div className="flex gap-4">
+              <Button className="flex-1 bg-blue-700 hover:bg-blue-800 text-white" onClick={() => { setShowOutOfCredits(false); /* TODO: Trigger ad logic here */ }}>Watch Ad to Continue</Button>
+              <Button className="flex-1" variant="outline" onClick={() => setShowOutOfCredits(false)}>Cancel</Button>
             </div>
           </div>
         </div>

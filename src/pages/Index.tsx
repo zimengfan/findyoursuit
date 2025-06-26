@@ -2,70 +2,10 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Shirt, Sparkles, Users, Star, ArrowRight, CheckCircle } from 'lucide-react';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
-import { useTrialSystem } from '@/hooks/useTrialSystem';
-import { SubscriptionPlans } from '@/components/subscription/SubscriptionPlans';
-import { UsageTracker } from '@/components/usage/UsageTracker';
-import { SignupPrompt } from '@/components/auth/SignupPrompt';
 import UserProfile from '@/components/UserProfile';
-
-const SignInModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
-  const { signIn } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-    try {
-      await signIn(email, password);
-      onClose();
-    } catch (err: any) {
-      setError(err.message || 'Sign in failed');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (!isOpen) return null;
-  return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <form onSubmit={handleSubmit} className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-4">Sign In</h2>
-        {error && <div className="text-red-600 mb-2">{error}</div>}
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          className="w-full mb-3 px-3 py-2 border rounded"
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          className="w-full mb-3 px-3 py-2 border rounded"
-          required
-        />
-        <button
-          type="submit"
-          className="w-full bg-blue-900 text-white py-2 rounded font-semibold mb-2"
-          disabled={loading}
-        >
-          {loading ? 'Signing In...' : 'Sign In'}
-        </button>
-        <button type="button" className="w-full" onClick={onClose}>Close</button>
-      </form>
-    </div>
-  );
-};
 
 const SignUpModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
   const { signUp } = useAuth();
@@ -126,9 +66,7 @@ const SignUpModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void
 const IndexContent = () => {
   const navigate = useNavigate();
   const { user, signOut, canUseService, incrementUsage } = useAuth();
-  const { hasUsedTrial, showSignupPrompt, setShowSignupPrompt, checkTrialOrPromptSignup } = useTrialSystem();
   const [showSignup, setShowSignup] = useState(false);
-  const [showLogin, setShowLogin] = useState(false);
 
   const features = [
     {
@@ -178,15 +116,6 @@ const IndexContent = () => {
   ];
 
   const handleRecommendation = async () => {
-    if (!user) {
-      if (!checkTrialOrPromptSignup()) return;
-    } else {
-      if (!canUseService()) {
-        setShowSignupPrompt(true);
-        return;
-      }
-      await incrementUsage();
-    }
     navigate('/recommendations');
   };
 
@@ -201,14 +130,12 @@ const IndexContent = () => {
               <span className="text-2xl font-bold text-slate-800">SuitCraft AI</span>
             </div>
             <div className="flex items-center gap-2">
-              {user ? (
+              {/* UserProfile button removed from homepage nav */}
+              {/* {user ? (
                 <UserProfile />
-              ) : (
-                <>
-                  <Button variant="outline" onClick={() => setShowLogin(true)}>Sign In</Button>
-                  <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => setShowSignup(true)}>Sign Up</Button>
-                </>
-              )}
+              ) : ( */}
+                <></>
+              {/* )} */}
             </div>
           </div>
         </div>
@@ -319,16 +246,6 @@ const IndexContent = () => {
         </div>
       </section>
 
-      {/* Subscription Plans Section */}
-      <section className="py-20">
-        <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-bold text-slate-900 mb-8 text-center">
-            Membership Plans
-          </h2>
-          <SubscriptionPlans />
-        </div>
-      </section>
-
       {/* Testimonials Section */}
       <section className="py-20">
         <div className="container mx-auto px-4">
@@ -401,9 +318,7 @@ const IndexContent = () => {
       </footer>
 
       {/* Signup/Login Modals */}
-      <SignInModal isOpen={showLogin} onClose={() => setShowLogin(false)} />
       <SignUpModal isOpen={showSignup} onClose={() => setShowSignup(false)} />
-      <SignupPrompt isOpen={showSignupPrompt} onClose={() => setShowSignupPrompt(false)} onSignup={() => setShowSignup(true)} />
     </div>
   );
 };
