@@ -136,6 +136,12 @@ const IndexContent = () => {
               ) : ( */}
                 <></>
               {/* )} */}
+              <Button
+                className="ml-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-full shadow"
+                onClick={() => navigate('/recommendations')}
+              >
+                Get Styled
+              </Button>
             </div>
           </div>
         </div>
