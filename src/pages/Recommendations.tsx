@@ -50,6 +50,46 @@ function smoothScrollToElement(element: HTMLElement, duration = 800) {
   window.requestAnimationFrame(step);
 }
 
+const GUEST_DAILY_LIMIT = 5;
+const GUEST_WEEKLY_LIMIT = 15;
+
+function getGuestUsageTimestamps() {
+  // Returns an array of ISO date strings
+  return JSON.parse(localStorage.getItem('suitcraft_guest_usage_timestamps') || '[]');
+}
+
+function addGuestUsageTimestamp() {
+  const now = new Date().toISOString();
+  const timestamps = getGuestUsageTimestamps();
+  timestamps.push(now);
+  localStorage.setItem('suitcraft_guest_usage_timestamps', JSON.stringify(timestamps));
+}
+
+function getGuestUsageCounts() {
+  const timestamps = getGuestUsageTimestamps();
+  const now = new Date();
+  // Daily: count timestamps from today
+  const todayStr = now.toISOString().slice(0, 10);
+  const dailyCount = timestamps.filter(ts => ts.slice(0, 10) === todayStr).length;
+  // Weekly: count timestamps from last 7 days (rolling window)
+  const weekAgo = new Date(now);
+  weekAgo.setDate(now.getDate() - 6); // 6 days ago + today = 7 days
+  const weekAgoStr = weekAgo.toISOString().slice(0, 10);
+  const weeklyCount = timestamps.filter(ts => ts.slice(0, 10) >= weekAgoStr).length;
+  return { dailyCount, weeklyCount };
+}
+
+function cleanupOldGuestUsageTimestamps() {
+  // Remove timestamps older than 7 days
+  const timestamps = getGuestUsageTimestamps();
+  const now = new Date();
+  const weekAgo = new Date(now);
+  weekAgo.setDate(now.getDate() - 6);
+  const weekAgoStr = weekAgo.toISOString().slice(0, 10);
+  const filtered = timestamps.filter(ts => ts.slice(0, 10) >= weekAgoStr);
+  localStorage.setItem('suitcraft_guest_usage_timestamps', JSON.stringify(filtered));
+}
+
 const Recommendations = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [preferences, setPreferences] = useState<UserPreferences>(initialPreferences);
@@ -61,13 +101,18 @@ const Recommendations = () => {
   const { user, incrementUsage, canUseService } = useAuth();
   const [showHomeConfirm, setShowHomeConfirm] = useState(false);
   const [showOutOfCredits, setShowOutOfCredits] = useState(false);
-  const [guestTrialUsed, setGuestTrialUsed] = useState(() => {
-    return localStorage.getItem('suitcraft_trial_used') === 'true';
-  });
+  const [guestUsage, setGuestUsage] = useState(getGuestUsageCounts());
+  const [showGuestLimitModal, setShowGuestLimitModal] = useState(false);
+  const [showGuestWeekLimitModal, setShowGuestWeekLimitModal] = useState(false);
 
   useEffect(() => {
     console.log('[Recommendations] Current step changed:', currentStep);
   }, [currentStep]);
+
+  useEffect(() => {
+    cleanupOldGuestUsageTimestamps();
+    setGuestUsage(getGuestUsageCounts());
+  }, []);
 
   const totalSteps = 3;
   const progress = (currentStep / totalSteps) * 100;
@@ -95,12 +140,19 @@ const Recommendations = () => {
         return;
       }
     } else {
-      if (guestTrialUsed) {
-        setShowOutOfCredits(true);
+      // Guest daily and rolling weekly limit logic
+      cleanupOldGuestUsageTimestamps();
+      const { dailyCount, weeklyCount } = getGuestUsageCounts();
+      if (dailyCount >= GUEST_DAILY_LIMIT) {
+        setShowGuestLimitModal(true);
         return;
       }
-      localStorage.setItem('suitcraft_trial_used', 'true');
-      setGuestTrialUsed(true);
+      if (weeklyCount >= GUEST_WEEKLY_LIMIT) {
+        setShowGuestWeekLimitModal(true);
+        return;
+      }
+      addGuestUsageTimestamp();
+      setGuestUsage(getGuestUsageCounts());
     }
     if (isGenerating) return; // Prevent double execution
     setIsGenerating(true);
@@ -186,11 +238,34 @@ const Recommendations = () => {
       {showOutOfCredits && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md text-center">
-            <h2 className="text-2xl font-bold mb-4">Watch an Ad to Continue</h2>
-            <p className="mb-6">You've used your free recommendations. To generate another, please watch a short ad.</p>
+            <h2 className="text-2xl font-bold mb-4">Out of Credits</h2>
+            <p className="mb-6">You've used your free recommendations. Please sign in for more access.</p>
             <div className="flex gap-4">
-              <Button className="flex-1 bg-blue-700 hover:bg-blue-800 text-white" onClick={() => { setShowOutOfCredits(false); /* TODO: Trigger ad logic here */ }}>Watch Ad to Continue</Button>
-              <Button className="flex-1" variant="outline" onClick={() => setShowOutOfCredits(false)}>Cancel</Button>
+              <Button className="flex-1" onClick={() => setShowOutOfCredits(false)}>Close</Button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Guest Daily Limit Modal */}
+      {showGuestLimitModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md text-center">
+            <h2 className="text-2xl font-bold mb-4">Daily Limit Reached</h2>
+            <p className="mb-6">You've reached your free daily limit of {GUEST_DAILY_LIMIT} recommendations. Please come back tomorrow or sign in for more access.</p>
+            <div className="flex gap-4">
+              <Button className="flex-1" onClick={() => setShowGuestLimitModal(false)}>Close</Button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Guest Weekly Limit Modal */}
+      {showGuestWeekLimitModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md text-center">
+            <h2 className="text-2xl font-bold mb-4">Weekly Limit Reached</h2>
+            <p className="mb-6">You've reached your free weekly limit of {GUEST_WEEKLY_LIMIT} recommendations in the last 7 days. Please come back later or sign in for more access.</p>
+            <div className="flex gap-4">
+              <Button className="flex-1" onClick={() => setShowGuestWeekLimitModal(false)}>Close</Button>
             </div>
           </div>
         </div>
